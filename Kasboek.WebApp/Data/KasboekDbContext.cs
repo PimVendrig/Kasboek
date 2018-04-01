@@ -15,5 +15,20 @@ namespace Kasboek.WebApp.Data
 
         public DbSet<Transactie> Transacties { get; set; }
 
+        public DbSet<Label> Labels { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<TransactieLabel>()
+                .ToTable("TransactieLabels")
+                .HasKey(transactieLabel => new { transactieLabel.TransactieId, transactieLabel.LabelId });
+
+            modelBuilder.Entity<RekeningLabel>()
+                .ToTable("RekeningLabels")
+                .HasKey(rekeningLabel => new { rekeningLabel.RekeningId, rekeningLabel.LabelId });
+        }
+
     }
 }

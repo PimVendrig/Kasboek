@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -27,6 +28,8 @@ namespace Kasboek.WebApp.Models
         public int? NaarRekeningId { get; set; }
         [ForeignKey("NaarRekeningId")]
         public Rekening NaarRekening { get; set; }
+
+        public List<TransactieLabel> TransactieLabels { get; set; }
 
     }
 }

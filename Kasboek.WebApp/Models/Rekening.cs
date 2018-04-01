@@ -25,5 +25,7 @@ namespace Kasboek.WebApp.Models
         [InverseProperty("NaarRekening")]
         public List<Transactie> NaarTransacties { get; set; }
 
+        public List<RekeningLabel> RekeningLabels { get; set; }
+
     }
 }
