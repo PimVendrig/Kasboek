@@ -19,13 +19,13 @@ namespace Kasboek.WebApp.Models
         [StringLength(1000)]
         public string Omschrijving { get; set; }
 
-        //TODO: Als verplicht markeren. Werkt nu niet goed samen met Add-Migration en circular reference
-        public int? VanRekeningId { get; set; }
+        public int VanRekeningId { get; set; }
+        [Required]
         [ForeignKey("VanRekeningId")]
         public Rekening VanRekening { get; set; }
 
-        //TODO: Als verplicht markeren. Werkt nu niet goed samen met Add-Migration en circular reference
-        public int? NaarRekeningId { get; set; }
+        public int NaarRekeningId { get; set; }
+        [Required]
         [ForeignKey("NaarRekeningId")]
         public Rekening NaarRekening { get; set; }
 

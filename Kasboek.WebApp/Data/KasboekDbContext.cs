@@ -21,6 +21,18 @@ namespace Kasboek.WebApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Transactie>()
+                .HasOne(r => r.VanRekening)
+                .WithMany("VanTransacties")
+                .HasForeignKey("VanRekeningId")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transactie>()
+                .HasOne(r => r.NaarRekening)
+                .WithMany("NaarTransacties")
+                .HasForeignKey("NaarRekeningId")
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<TransactieLabel>()
                 .ToTable("TransactieLabels")
                 .HasKey(transactieLabel => new { transactieLabel.TransactieId, transactieLabel.LabelId });
