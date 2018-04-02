@@ -10,22 +10,27 @@ namespace Kasboek.WebApp.Models
 
         public int TransactieId { get; set; }
 
+        [DataType(DataType.Date)]
         [Column(TypeName = "date")]
         public DateTime Datum { get; set; }
 
+        [DataType(DataType.Currency)]
         public decimal Bedrag { get; set; }
 
         [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [DataType(DataType.MultilineText)]
         [StringLength(1000)]
         public string Omschrijving { get; set; }
 
+        [Display(Name = "Van rekening")]
         public int VanRekeningId { get; set; }
-        [Required]
+        [Display(Name = "Van rekening")]
         [ForeignKey("VanRekeningId")]
         public Rekening VanRekening { get; set; }
 
+        [Display(Name = "Naar rekening")]
         public int NaarRekeningId { get; set; }
-        [Required]
+        [Display(Name = "Naar rekening")]
         [ForeignKey("NaarRekeningId")]
         public Rekening NaarRekening { get; set; }
 
