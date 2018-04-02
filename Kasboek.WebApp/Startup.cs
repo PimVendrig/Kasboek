@@ -1,9 +1,11 @@
 ﻿using Kasboek.WebApp.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 
 namespace Kasboek.WebApp
 {
@@ -27,6 +29,14 @@ namespace Kasboek.WebApp
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            var nederlands = new CultureInfo("nl-NL");
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(nederlands),
+                SupportedCultures = new[] { nederlands },
+                SupportedUICultures = new[] { nederlands }
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseBrowserLink();

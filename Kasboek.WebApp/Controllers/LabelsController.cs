@@ -19,7 +19,9 @@ namespace Kasboek.WebApp.Controllers
         // GET: Labels
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Labels.ToListAsync());
+            var labels = _context.Labels
+                .OrderBy(l => l.Omschrijving);
+            return View(await labels.ToListAsync());
         }
 
         // GET: Labels/Details/5
