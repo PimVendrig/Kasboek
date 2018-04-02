@@ -15,7 +15,7 @@ namespace Kasboek.WebApp.Models
 
         public decimal Bedrag { get; set; }
 
-        [Required(AllowEmptyStrings = true)]
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
         [StringLength(1000)]
         public string Omschrijving { get; set; }
 

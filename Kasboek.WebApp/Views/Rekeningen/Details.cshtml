@@ -1,0 +1,36 @@
+﻿@model Kasboek.WebApp.Models.Rekening
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Rekening</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.RekeningNummer)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.RekeningNummer)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Naam)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Naam)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.IsEigenRekening)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsEigenRekening)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.RekeningId">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

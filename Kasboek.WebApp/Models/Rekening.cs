@@ -9,7 +9,8 @@ namespace Kasboek.WebApp.Models
 
         public int RekeningId { get; set; }
 
-        [Required(AllowEmptyStrings = true)]
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Display(Name = "Rekeningnummer")]
         [StringLength(100)]
         public string RekeningNummer { get; set; }
 
@@ -17,6 +18,7 @@ namespace Kasboek.WebApp.Models
         [StringLength(100)]
         public string Naam { get; set; }
 
+        [Display(Name = "Is eigen rekening")]
         public bool IsEigenRekening { get; set; }
 
         [InverseProperty("VanRekening")]
