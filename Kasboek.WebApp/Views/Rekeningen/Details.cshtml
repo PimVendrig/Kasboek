@@ -34,6 +34,12 @@
         <dd>
             @Html.DisplayFor(model => model.StandaardCategorie.Omschrijving)
         </dd>
+        <dt>
+            Saldo
+        </dt>
+        <dd>
+            @string.Format("{0:C}", ViewData["Saldo"])
+        </dd>
     </dl>
 </div>
 <div>

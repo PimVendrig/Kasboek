@@ -43,7 +43,19 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
+            ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
+        }
+
+        public decimal GetSaldo(Rekening rekening)
+        {
+            var vanTotaal = _context.Transacties
+                .Where(t => t.VanRekening == rekening)
+                .Sum(t => t.Bedrag);
+            var naarTotaal = _context.Transacties
+                .Where(t => t.NaarRekening == rekening)
+                .Sum(t => t.Bedrag);
+            return naarTotaal - vanTotaal;
         }
 
         // GET: Rekeningen/Create
@@ -84,6 +96,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
             ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
+            ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }
 
@@ -120,6 +133,7 @@ namespace Kasboek.WebApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
+            ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }
 
@@ -139,6 +153,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
+            ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }
 
