@@ -17,6 +17,8 @@ namespace Kasboek.WebApp.Data
 
         public DbSet<Label> Labels { get; set; }
 
+        public DbSet<Categorie> Categorieen { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -32,6 +34,18 @@ namespace Kasboek.WebApp.Data
                 .WithMany("NaarTransacties")
                 .HasForeignKey("NaarRekeningId")
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transactie>()
+                .HasOne(r => r.Categorie)
+                .WithMany("Transacties")
+                .HasForeignKey("CategorieId")
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Rekening>()
+                .HasOne(r => r.StandaardCategorie)
+                .WithMany("Rekeningen")
+                .HasForeignKey("StandaardCategorieId")
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<TransactieLabel>()
                 .ToTable("TransactieLabels")

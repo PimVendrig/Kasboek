@@ -12,15 +12,18 @@
 <table class="table">
     <thead>
         <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.RekeningNummer)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Naam)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.IsEigenRekening)
-                </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RekeningNummer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Naam)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsEigenRekening)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StandaardCategorie)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -35,6 +38,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.IsEigenRekening)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StandaardCategorie.Omschrijving)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.RekeningId">Edit</a> |

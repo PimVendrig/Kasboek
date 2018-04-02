@@ -29,5 +29,11 @@ namespace Kasboek.WebApp.Models
 
         public List<RekeningLabel> RekeningLabels { get; set; }
 
+        [Display(Name = "Standaard categorie")]
+        public int? StandaardCategorieId { get; set; }
+        [Display(Name = "Standaard categorie")]
+        [ForeignKey("StandaardCategorieId")]
+        public Categorie StandaardCategorie { get; set; }
+
     }
 }

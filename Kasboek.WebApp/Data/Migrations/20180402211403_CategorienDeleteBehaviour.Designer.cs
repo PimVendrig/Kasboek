@@ -2,14 +2,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 
 namespace Kasboek.WebApp.Data.Migrations
 {
     [DbContext(typeof(KasboekDbContext))]
-    partial class KasboekDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180402211403_CategorienDeleteBehaviour")]
+    partial class CategorienDeleteBehaviour
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

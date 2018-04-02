@@ -2,14 +2,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 
 namespace Kasboek.WebApp.Data.Migrations
 {
     [DbContext(typeof(KasboekDbContext))]
-    partial class KasboekDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180402203342_Categorien")]
+    partial class Categorien
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -127,8 +129,7 @@ namespace Kasboek.WebApp.Data.Migrations
                 {
                     b.HasOne("Kasboek.WebApp.Models.Categorie", "StandaardCategorie")
                         .WithMany("Rekeningen")
-                        .HasForeignKey("StandaardCategorieId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("StandaardCategorieId");
                 });
 
             modelBuilder.Entity("Kasboek.WebApp.Models.RekeningLabel", b =>
@@ -148,8 +149,7 @@ namespace Kasboek.WebApp.Data.Migrations
                 {
                     b.HasOne("Kasboek.WebApp.Models.Categorie", "Categorie")
                         .WithMany("Transacties")
-                        .HasForeignKey("CategorieId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CategorieId");
 
                     b.HasOne("Kasboek.WebApp.Models.Rekening", "NaarRekening")
                         .WithMany("NaarTransacties")

@@ -4,30 +4,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Kasboek.WebApp.Controllers
 {
-    public class RekeningenController : Controller
+    public class CategorieenController : Controller
     {
         private readonly KasboekDbContext _context;
 
-        public RekeningenController(KasboekDbContext context)
+        public CategorieenController(KasboekDbContext context)
         {
             _context = context;
         }
 
-        // GET: Rekeningen
+        // GET: Categorieen
         public async Task<IActionResult> Index()
         {
-            var rekeningen = _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
-                .OrderByDescending(r => r.IsEigenRekening)
-                .ThenBy(r => r.Naam);
-            return View(await rekeningen.ToListAsync());
+            return View(await _context.Categorieen.ToListAsync());
         }
 
-        // GET: Rekeningen/Details/5
+        // GET: Categorieen/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -35,42 +30,39 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
-                .SingleOrDefaultAsync(m => m.RekeningId == id);
-            if (rekening == null)
+            var categorie = await _context.Categorieen
+                .SingleOrDefaultAsync(m => m.CategorieId == id);
+            if (categorie == null)
             {
                 return NotFound();
             }
 
-            return View(rekening);
+            return View(categorie);
         }
 
-        // GET: Rekeningen/Create
+        // GET: Categorieen/Create
         public IActionResult Create()
         {
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving");
             return View();
         }
 
-        // POST: Rekeningen/Create
+        // POST: Categorieen/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("RekeningId,RekeningNummer,Naam,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
+        public async Task<IActionResult> Create([Bind("CategorieId,Omschrijving")] Categorie categorie)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(rekening);
+                _context.Add(categorie);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
-            return View(rekening);
+            return View(categorie);
         }
 
-        // GET: Rekeningen/Edit/5
+        // GET: Categorieen/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -78,23 +70,22 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(m => m.RekeningId == id);
-            if (rekening == null)
+            var categorie = await _context.Categorieen.SingleOrDefaultAsync(m => m.CategorieId == id);
+            if (categorie == null)
             {
                 return NotFound();
             }
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
-            return View(rekening);
+            return View(categorie);
         }
 
-        // POST: Rekeningen/Edit/5
+        // POST: Categorieen/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("RekeningId,RekeningNummer,Naam,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
+        public async Task<IActionResult> Edit(int id, [Bind("CategorieId,Omschrijving")] Categorie categorie)
         {
-            if (id != rekening.RekeningId)
+            if (id != categorie.CategorieId)
             {
                 return NotFound();
             }
@@ -103,12 +94,12 @@ namespace Kasboek.WebApp.Controllers
             {
                 try
                 {
-                    _context.Update(rekening);
+                    _context.Update(categorie);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!RekeningExists(rekening.RekeningId))
+                    if (!CategorieExists(categorie.CategorieId))
                     {
                         return NotFound();
                     }
@@ -119,11 +110,10 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
-            return View(rekening);
+            return View(categorie);
         }
 
-        // GET: Rekeningen/Delete/5
+        // GET: Categorieen/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -131,31 +121,30 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
-                .SingleOrDefaultAsync(m => m.RekeningId == id);
-            if (rekening == null)
+            var categorie = await _context.Categorieen
+                .SingleOrDefaultAsync(m => m.CategorieId == id);
+            if (categorie == null)
             {
                 return NotFound();
             }
 
-            return View(rekening);
+            return View(categorie);
         }
 
-        // POST: Rekeningen/Delete/5
+        // POST: Categorieen/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(m => m.RekeningId == id);
-            _context.Rekeningen.Remove(rekening);
+            var categorie = await _context.Categorieen.SingleOrDefaultAsync(m => m.CategorieId == id);
+            _context.Categorieen.Remove(categorie);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool RekeningExists(int id)
+        private bool CategorieExists(int id)
         {
-            return _context.Rekeningen.Any(e => e.RekeningId == id);
+            return _context.Categorieen.Any(e => e.CategorieId == id);
         }
     }
 }

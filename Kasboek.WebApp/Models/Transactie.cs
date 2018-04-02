@@ -36,5 +36,9 @@ namespace Kasboek.WebApp.Models
 
         public List<TransactieLabel> TransactieLabels { get; set; }
 
+        [Display(Name = "Categorie")]
+        public int? CategorieId { get; set; }
+        public Categorie Categorie { get; set; }
+
     }
 }

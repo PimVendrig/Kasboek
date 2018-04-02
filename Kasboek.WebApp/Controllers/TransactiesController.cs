@@ -20,8 +20,13 @@ namespace Kasboek.WebApp.Controllers
         // GET: Transacties
         public async Task<IActionResult> Index()
         {
-            var kasboekDbContext = _context.Transacties.Include(t => t.NaarRekening).Include(t => t.VanRekening);
-            return View(await kasboekDbContext.ToListAsync());
+            var transacties = _context.Transacties
+                .Include(t => t.NaarRekening)
+                .Include(t => t.VanRekening)
+                .Include(t => t.Categorie)
+                .OrderByDescending(t => t.Datum)
+                .ThenByDescending(t => t.TransactieId);
+            return View(await transacties.ToListAsync());
         }
 
         // GET: Transacties/Details/5
@@ -35,6 +40,7 @@ namespace Kasboek.WebApp.Controllers
             var transactie = await _context.Transacties
                 .Include(t => t.NaarRekening)
                 .Include(t => t.VanRekening)
+                .Include(t => t.Categorie)
                 .SingleOrDefaultAsync(m => m.TransactieId == id);
             if (transactie == null)
             {
@@ -49,6 +55,7 @@ namespace Kasboek.WebApp.Controllers
         {
             ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam");
             ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam");
+            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving");
             return View();
         }
 
@@ -57,7 +64,7 @@ namespace Kasboek.WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TransactieId,Datum,Bedrag,Omschrijving,VanRekeningId,NaarRekeningId")] Transactie transactie)
+        public async Task<IActionResult> Create([Bind("TransactieId,Datum,Bedrag,Omschrijving,VanRekeningId,NaarRekeningId,CategorieId")] Transactie transactie)
         {
             if (ModelState.IsValid)
             {
@@ -67,6 +74,7 @@ namespace Kasboek.WebApp.Controllers
             }
             ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.NaarRekeningId);
             ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.VanRekeningId);
+            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", transactie.CategorieId);
             return View(transactie);
         }
 
@@ -85,6 +93,7 @@ namespace Kasboek.WebApp.Controllers
             }
             ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.NaarRekeningId);
             ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.VanRekeningId);
+            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", transactie.CategorieId);
             return View(transactie);
         }
 
@@ -93,7 +102,7 @@ namespace Kasboek.WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TransactieId,Datum,Bedrag,Omschrijving,VanRekeningId,NaarRekeningId")] Transactie transactie)
+        public async Task<IActionResult> Edit(int id, [Bind("TransactieId,Datum,Bedrag,Omschrijving,VanRekeningId,NaarRekeningId,CategorieId")] Transactie transactie)
         {
             if (id != transactie.TransactieId)
             {
@@ -122,6 +131,7 @@ namespace Kasboek.WebApp.Controllers
             }
             ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.NaarRekeningId);
             ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.VanRekeningId);
+            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", transactie.CategorieId);
             return View(transactie);
         }
 
@@ -136,6 +146,7 @@ namespace Kasboek.WebApp.Controllers
             var transactie = await _context.Transacties
                 .Include(t => t.NaarRekening)
                 .Include(t => t.VanRekening)
+                .Include(t => t.Categorie)
                 .SingleOrDefaultAsync(m => m.TransactieId == id);
             if (transactie == null)
             {
