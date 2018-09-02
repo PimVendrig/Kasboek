@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Kasboek.WebApp.Data;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -27,14 +22,17 @@ namespace Kasboek.WebApp
             {
                 var services = scope.ServiceProvider;
 
+                var logger = services.GetRequiredService<ILogger<Program>>();
                 try
                 {
-                    var context = services.GetRequiredService<KasboekDbContext>();
-                    KasboekInitializer.Initialize(context);
+                    using (var context = services.GetRequiredService<KasboekDbContext>())
+                    {
+                        KasboekInitializer.Initialize(context);
+                    }
+                    logger.LogInformation("Initialiseren van de database is afgerond.");
                 }
                 catch (Exception ex)
                 {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "Er is een fout opgetreden bij het initialiseren van de database.");
                 }
             }

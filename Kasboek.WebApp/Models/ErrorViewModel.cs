@@ -1,5 +1,3 @@
-using System;
-
 namespace Kasboek.WebApp.Models
 {
     public class ErrorViewModel
