@@ -1,13 +1,13 @@
 ﻿@model IEnumerable<Kasboek.WebApp.Models.Categorie>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Categorieën";
 }
 
-<h2>Index</h2>
+<h2>Categorieën</h2>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Categorie maken</a>
 </p>
 <table class="table">
     <thead>
@@ -25,9 +25,9 @@
                 @Html.DisplayFor(modelItem => item.Omschrijving)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.CategorieId">Edit</a> |
+                <a asp-action="Edit" asp-route-id="@item.CategorieId">Bewerken</a> |
                 <a asp-action="Details" asp-route-id="@item.CategorieId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.CategorieId">Delete</a>
+                <a asp-action="Delete" asp-route-id="@item.CategorieId">Verwijderen</a>
             </td>
         </tr>
 }

@@ -1,14 +1,13 @@
 ﻿@model Kasboek.WebApp.Models.Rekening
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Rekening details";
 }
 
-<h2>Details</h2>
+<h2>Rekening details</h2>
+<hr />
 
 <div>
-    <h4>Rekening</h4>
-    <hr />
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.Naam)
@@ -43,6 +42,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.RekeningId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.RekeningId">Bewerken</a> |
+    <a asp-action="Index">Terug naar rekeningen</a>
 </div>
