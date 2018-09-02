@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
+using Kasboek.WebApp.Services;
 
 namespace Kasboek.WebApp.Controllers
 {
@@ -53,9 +53,9 @@ namespace Kasboek.WebApp.Controllers
         // GET: Transacties/Create
         public IActionResult Create()
         {
-            ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam");
-            ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam");
-            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving");
+            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context);
+            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context);
+            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context);
             return View();
         }
 
@@ -70,9 +70,9 @@ namespace Kasboek.WebApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.VanRekeningId);
-            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", transactie.CategorieId);
+            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context, transactie.CategorieId);
             return View(transactie);
         }
 
@@ -89,9 +89,9 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.VanRekeningId);
-            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", transactie.CategorieId);
+            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context, transactie.CategorieId);
             return View(transactie);
         }
 
@@ -125,9 +125,9 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["NaarRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = new SelectList(_context.Rekeningen, "RekeningId", "Naam", transactie.VanRekeningId);
-            ViewData["CategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", transactie.CategorieId);
+            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context, transactie.CategorieId);
             return View(transactie);
         }
 

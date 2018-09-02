@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Kasboek.WebApp.Services;
 
 namespace Kasboek.WebApp.Controllers
 {
@@ -61,7 +61,7 @@ namespace Kasboek.WebApp.Controllers
         // GET: Rekeningen/Create
         public IActionResult Create()
         {
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving");
+            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context);
             return View();
         }
 
@@ -76,7 +76,7 @@ namespace Kasboek.WebApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
+            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context, rekening.StandaardCategorieId);
             return View(rekening);
         }
 
@@ -93,7 +93,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
+            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context, rekening.StandaardCategorieId);
             ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }
@@ -128,7 +128,7 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StandaardCategorieId"] = new SelectList(_context.Categorieen, "CategorieId", "Omschrijving", rekening.StandaardCategorieId);
+            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context, rekening.StandaardCategorieId);
             ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }
