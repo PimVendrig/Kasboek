@@ -33,7 +33,7 @@ namespace Kasboek.WebApp.Controllers
             }
 
             var categorie = await _context.Categorieen
-                .SingleOrDefaultAsync(m => m.CategorieId == id);
+                .SingleOrDefaultAsync(c => c.CategorieId == id);
             if (categorie == null)
             {
                 return NotFound();
@@ -49,8 +49,6 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // POST: Categorieen/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategorieId,Omschrijving")] Categorie categorie)
@@ -72,7 +70,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var categorie = await _context.Categorieen.SingleOrDefaultAsync(m => m.CategorieId == id);
+            var categorie = await _context.Categorieen.SingleOrDefaultAsync(c => c.CategorieId == id);
             if (categorie == null)
             {
                 return NotFound();
@@ -81,8 +79,6 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // POST: Categorieen/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CategorieId,Omschrijving")] Categorie categorie)
@@ -124,7 +120,7 @@ namespace Kasboek.WebApp.Controllers
             }
 
             var categorie = await _context.Categorieen
-                .SingleOrDefaultAsync(m => m.CategorieId == id);
+                .SingleOrDefaultAsync(c => c.CategorieId == id);
             if (categorie == null)
             {
                 return NotFound();
@@ -138,7 +134,11 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var categorie = await _context.Categorieen.SingleOrDefaultAsync(m => m.CategorieId == id);
+            var categorie = await _context.Categorieen.SingleOrDefaultAsync(c => c.CategorieId == id);
+            if (categorie == null)
+            {
+                return NotFound();
+            }
             _context.Categorieen.Remove(categorie);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -146,7 +146,7 @@ namespace Kasboek.WebApp.Controllers
 
         private bool CategorieExists(int id)
         {
-            return _context.Categorieen.Any(e => e.CategorieId == id);
+            return _context.Categorieen.Any(c => c.CategorieId == id);
         }
     }
 }

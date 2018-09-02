@@ -22,19 +22,19 @@ namespace Kasboek.WebApp.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Transactie>()
-                .HasOne(r => r.VanRekening)
+                .HasOne(t => t.VanRekening)
                 .WithMany("VanTransacties")
                 .HasForeignKey("VanRekeningId")
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Transactie>()
-                .HasOne(r => r.NaarRekening)
+                .HasOne(t => t.NaarRekening)
                 .WithMany("NaarTransacties")
                 .HasForeignKey("NaarRekeningId")
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Transactie>()
-                .HasOne(r => r.Categorie)
+                .HasOne(t => t.Categorie)
                 .WithMany("Transacties")
                 .HasForeignKey("CategorieId")
                 .OnDelete(DeleteBehavior.SetNull);

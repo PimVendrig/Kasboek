@@ -37,7 +37,7 @@ namespace Kasboek.WebApp.Controllers
 
             var rekening = await _context.Rekeningen
                 .Include(r => r.StandaardCategorie)
-                .SingleOrDefaultAsync(m => m.RekeningId == id);
+                .SingleOrDefaultAsync(r => r.RekeningId == id);
             if (rekening == null)
             {
                 return NotFound();
@@ -66,8 +66,6 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // POST: Rekeningen/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("RekeningId,Rekeningnummer,Naam,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
@@ -90,7 +88,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(m => m.RekeningId == id);
+            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(r => r.RekeningId == id);
             if (rekening == null)
             {
                 return NotFound();
@@ -101,8 +99,6 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // POST: Rekeningen/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("RekeningId,Rekeningnummer,Naam,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
@@ -147,7 +143,7 @@ namespace Kasboek.WebApp.Controllers
 
             var rekening = await _context.Rekeningen
                 .Include(r => r.StandaardCategorie)
-                .SingleOrDefaultAsync(m => m.RekeningId == id);
+                .SingleOrDefaultAsync(r => r.RekeningId == id);
             if (rekening == null)
             {
                 return NotFound();
@@ -162,7 +158,11 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(m => m.RekeningId == id);
+            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(r => r.RekeningId == id);
+            if (rekening == null)
+            {
+                return NotFound();
+            }
             _context.Rekeningen.Remove(rekening);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -170,7 +170,7 @@ namespace Kasboek.WebApp.Controllers
 
         private bool RekeningExists(int id)
         {
-            return _context.Rekeningen.Any(e => e.RekeningId == id);
+            return _context.Rekeningen.Any(r => r.RekeningId == id);
         }
     }
 }
