@@ -24,7 +24,7 @@
     </AssociationLine>
     <AssociationLine Name="VanTransacties" Type="Kasboek.WebApp.Models.Transactie">
       <MemberNameLabel ManuallyPlaced="true">
-        <Position X="-1.213" Y="0.143" />
+        <Position X="0.016" Y="0.326" />
       </MemberNameLabel>
     </AssociationLine>
     <AssociationLine Name="StandaardCategorie" Type="Kasboek.WebApp.Models.Categorie" FixedToPoint="true">
@@ -52,6 +52,11 @@
       <Property Name="NaarRekeningId" Hidden="true" />
       <Property Name="VanRekeningId" Hidden="true" />
     </Members>
+    <AssociationLine Name="NaarRekening" Type="Kasboek.WebApp.Models.Rekening">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.13" Y="0.31" />
+      </MemberNameLabel>
+    </AssociationLine>
     <AssociationLine Name="VanRekening" Type="Kasboek.WebApp.Models.Rekening" FixedFromPoint="true">
       <Path>
         <Point X="7.812" Y="3.5" />

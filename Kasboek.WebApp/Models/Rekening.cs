@@ -10,9 +10,8 @@ namespace Kasboek.WebApp.Models
         public int RekeningId { get; set; }
 
         [DisplayFormat(ConvertEmptyStringToNull = false)]
-        [Display(Name = "Rekeningnummer")]
         [StringLength(100)]
-        public string RekeningNummer { get; set; }
+        public string Rekeningnummer { get; set; }
 
         [Required]
         [StringLength(100)]
