@@ -68,7 +68,7 @@ namespace Kasboek.WebApp.Controllers
         // POST: Rekeningen/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("RekeningId,Rekeningnummer,Naam,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
+        public async Task<IActionResult> Create([Bind("RekeningId,Naam,Rekeningnummer,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
         {
             if (ModelState.IsValid)
             {
@@ -101,7 +101,7 @@ namespace Kasboek.WebApp.Controllers
         // POST: Rekeningen/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("RekeningId,Rekeningnummer,Naam,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
+        public async Task<IActionResult> Edit(int id, [Bind("RekeningId,Naam,Rekeningnummer,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
         {
             if (id != rekening.RekeningId)
             {

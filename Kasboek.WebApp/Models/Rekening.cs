@@ -9,13 +9,13 @@ namespace Kasboek.WebApp.Models
 
         public int RekeningId { get; set; }
 
-        [DisplayFormat(ConvertEmptyStringToNull = false)]
-        [StringLength(100)]
-        public string Rekeningnummer { get; set; }
-
         [Required]
         [StringLength(100)]
         public string Naam { get; set; }
+
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [StringLength(100)]
+        public string Rekeningnummer { get; set; }
 
         [Display(Name = "Is eigen rekening")]
         public bool IsEigenRekening { get; set; }
