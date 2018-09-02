@@ -34,8 +34,6 @@ namespace Kasboek.WebApp.Models
         [ForeignKey("NaarRekeningId")]
         public Rekening NaarRekening { get; set; }
 
-        public List<TransactieLabel> TransactieLabels { get; set; }
-
         [Display(Name = "Categorie")]
         public int? CategorieId { get; set; }
         public Categorie Categorie { get; set; }

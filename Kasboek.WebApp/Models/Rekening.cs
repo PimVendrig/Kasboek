@@ -27,8 +27,6 @@ namespace Kasboek.WebApp.Models
         [InverseProperty("NaarRekening")]
         public List<Transactie> NaarTransacties { get; set; }
 
-        public List<RekeningLabel> RekeningLabels { get; set; }
-
         [Display(Name = "Standaard categorie")]
         public int? StandaardCategorieId { get; set; }
         [Display(Name = "Standaard categorie")]
