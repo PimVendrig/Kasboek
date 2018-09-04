@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kasboek.WebApp.Utils;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,6 +14,8 @@ namespace Kasboek.WebApp.Models
         [Column(TypeName = "date")]
         public DateTime Datum { get; set; }
 
+        //[RegularExpression(@"^\d{0,16}(\,\d{1,2})?$")]
+        [Range(0.0, 9999999999999999.99)]
         [DataType(DataType.Currency)]
         public decimal Bedrag { get; set; }
 
@@ -22,12 +25,14 @@ namespace Kasboek.WebApp.Models
         public string Omschrijving { get; set; }
 
         [Display(Name = "Van rekening")]
+        [Unlike(nameof(NaarRekeningId), "Naar rekening")]
         public int VanRekeningId { get; set; }
         [Display(Name = "Van rekening")]
         [ForeignKey("VanRekeningId")]
         public Rekening VanRekening { get; set; }
 
         [Display(Name = "Naar rekening")]
+        [Unlike(nameof(VanRekeningId), "Van rekening")]
         public int NaarRekeningId { get; set; }
         [Display(Name = "Naar rekening")]
         [ForeignKey("NaarRekeningId")]
