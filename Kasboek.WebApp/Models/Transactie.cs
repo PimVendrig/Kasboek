@@ -20,7 +20,7 @@ namespace Kasboek.WebApp.Models
 
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [DataType(DataType.MultilineText)]
-        [StringLength(1000)]
+        [StringLength(500)]
         public string Omschrijving { get; set; }
 
         [Display(Name = "Van rekening")]
