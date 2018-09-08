@@ -52,17 +52,19 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Transacties/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             //Bij aanmaken transactie deze voorvullen
+            var instellingen = await _context.Instellingen.SingleAsync();
             var transactie = new Transactie
             {
+                Datum = DateTime.Today,
                 Bedrag = 0,
-                Datum = DateTime.Today
+                VanRekeningId = instellingen.StandaardVanRekeningId ?? 0
             };
 
             ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context);
-            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context);
+            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
             ViewData["CategorieId"] = SelectListService.GetCategorieen(_context);
             return View(transactie);
         }

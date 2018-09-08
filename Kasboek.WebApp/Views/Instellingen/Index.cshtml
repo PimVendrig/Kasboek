@@ -1,0 +1,22 @@
+﻿@model Kasboek.WebApp.Models.Instellingen
+
+@{
+    ViewData["Title"] = "Instellingen details";
+}
+
+<h2>Instellingen details</h2>
+<hr />
+
+<div>
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.StandaardVanRekening)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.StandaardVanRekening.Naam)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit">Bewerken</a>
+</div>

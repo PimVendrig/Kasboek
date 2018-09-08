@@ -10,6 +10,8 @@ namespace Kasboek.WebApp.Data
         {
             
         }
+        
+        public DbSet<Instellingen> Instellingen { get; set; }
 
         public DbSet<Rekening> Rekeningen { get; set; }
 
@@ -23,27 +25,34 @@ namespace Kasboek.WebApp.Data
 
             modelBuilder.Entity<Transactie>()
                 .HasOne(t => t.VanRekening)
-                .WithMany("VanTransacties")
-                .HasForeignKey("VanRekeningId")
+                .WithMany(nameof(Rekening.VanTransacties))
+                .HasForeignKey(nameof(Transactie.VanRekeningId))
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Transactie>()
                 .HasOne(t => t.NaarRekening)
-                .WithMany("NaarTransacties")
-                .HasForeignKey("NaarRekeningId")
+                .WithMany(nameof(Rekening.NaarTransacties))
+                .HasForeignKey(nameof(Transactie.NaarRekeningId))
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Transactie>()
                 .HasOne(t => t.Categorie)
-                .WithMany("Transacties")
-                .HasForeignKey("CategorieId")
+                .WithMany(nameof(Categorie.Transacties))
+                .HasForeignKey(nameof(Transactie.CategorieId))
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Rekening>()
                 .HasOne(r => r.StandaardCategorie)
-                .WithMany("Rekeningen")
-                .HasForeignKey("StandaardCategorieId")
+                .WithMany(nameof(Categorie.Rekeningen))
+                .HasForeignKey(nameof(Rekening.StandaardCategorieId))
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Instellingen>()
+                .HasOne(r => r.StandaardVanRekening)
+                .WithMany()
+                .HasForeignKey(nameof(Models.Instellingen.StandaardVanRekeningId))
+                .OnDelete(DeleteBehavior.SetNull);
+
         }
 
     }

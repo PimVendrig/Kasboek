@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Kasboek.WebApp.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace Kasboek.WebApp.Data
@@ -22,7 +23,15 @@ namespace Kasboek.WebApp.Data
 
         public static void Seed(KasboekDbContext context)
         {
-            //TODO: Enkele standaard waarden instellen
+            if (!context.Instellingen.Any())
+            {
+                context.Instellingen.Add(
+                    new Instellingen
+                    {
+                        StandaardVanRekening = null
+                    });
+                context.SaveChanges();
+            }
         }
 
     }
