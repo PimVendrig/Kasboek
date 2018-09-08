@@ -1,4 +1,5 @@
 ﻿using Kasboek.WebApp.Data;
+using Kasboek.WebApp.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Localization;
@@ -24,6 +25,8 @@ namespace Kasboek.WebApp
             services.AddDbContext<KasboekDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("KasboekDatabase")));
 
             services.AddMvc();
+
+            services.AddScoped<ICategorieenService, CategorieenService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

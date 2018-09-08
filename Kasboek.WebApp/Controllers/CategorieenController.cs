@@ -1,28 +1,24 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
-using Kasboek.WebApp.Utils;
+using Kasboek.WebApp.Services;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class CategorieenController : Controller
     {
-        private readonly KasboekDbContext _context;
+        private readonly ICategorieenService _categorieenService;
 
-        public CategorieenController(KasboekDbContext context)
+        public CategorieenController(ICategorieenService categorieenService)
         {
-            _context = context;
+            _categorieenService = categorieenService;
         }
 
         // GET: Categorieen
         public async Task<IActionResult> Index()
         {
-            var categorieen = _context.Categorieen
-                .OrderBy(c => c.Omschrijving);
-            return View(await categorieen.ToListAsync());
+            return View(await _categorieenService.GetListAsync());
         }
 
         // GET: Categorieen/Details/5
@@ -33,8 +29,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var categorie = await _context.Categorieen
-                .SingleOrDefaultAsync(c => c.CategorieId == id);
+            var categorie = await _categorieenService.GetSingleOrDefaultAsync(id.Value);
             if (categorie == null)
             {
                 return NotFound();
@@ -54,15 +49,15 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategorieId,Omschrijving")] Categorie categorie)
         {
-            if (IsOmschrijvingInUse(categorie))
+            if (await _categorieenService.IsOmschrijvingInUseAsync(categorie))
             {
                 ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
             }
 
             if (ModelState.IsValid)
             {
-                _context.Add(categorie);
-                await _context.SaveChangesAsync();
+                _categorieenService.Add(categorie);
+                await _categorieenService.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = categorie.CategorieId });
             }
             return View(categorie);
@@ -76,7 +71,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var categorie = await _context.Categorieen.SingleOrDefaultAsync(c => c.CategorieId == id);
+            var categorie = await _categorieenService.GetSingleOrDefaultAsync(id.Value);
             if (categorie == null)
             {
                 return NotFound();
@@ -94,7 +89,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            if (IsOmschrijvingInUse(categorie))
+            if (await _categorieenService.IsOmschrijvingInUseAsync(categorie))
             {
                 ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
             }
@@ -103,13 +98,13 @@ namespace Kasboek.WebApp.Controllers
             {
                 try
                 {
-                    _context.Update(categorie);
-                    await _context.SaveChangesAsync();
+                    _categorieenService.Update(categorie);
+                    await _categorieenService.SaveChangesAsync();
                     return RedirectToAction(nameof(Details), new { id = categorie.CategorieId });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CategorieExists(categorie.CategorieId))
+                    if (!await _categorieenService.ExistsAsync(categorie.CategorieId))
                     {
                         return NotFound();
                     }
@@ -130,8 +125,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var categorie = await _context.Categorieen
-                .SingleOrDefaultAsync(c => c.CategorieId == id);
+            var categorie = await _categorieenService.GetSingleOrDefaultAsync(id.Value);
             if (categorie == null)
             {
                 return NotFound();
@@ -145,28 +139,14 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var categorie = await _context.Categorieen.SingleOrDefaultAsync(c => c.CategorieId == id);
+            var categorie = await _categorieenService.GetSingleOrDefaultAsync(id);
             if (categorie == null)
             {
                 return NotFound();
             }
-            _context.Categorieen.Remove(categorie);
-            await _context.SaveChangesAsync();
+            _categorieenService.Remove(categorie);
+            await _categorieenService.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CategorieExists(int id)
-        {
-            return _context.Categorieen.Any(c => c.CategorieId == id);
-        }
-
-        private bool IsOmschrijvingInUse(Categorie categorie)
-        {
-            if (string.IsNullOrWhiteSpace(categorie.Omschrijving)) return false;
-
-            return _context.Categorieen.Any(c => 
-                c.CategorieId != categorie.CategorieId
-                && c.Omschrijving == categorie.Omschrijving);
         }
 
     }
