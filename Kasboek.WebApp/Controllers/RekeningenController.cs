@@ -49,22 +49,15 @@ namespace Kasboek.WebApp.Controllers
 
         public decimal GetSaldo(Rekening rekening)
         {
-            var vanTotaal = _context.Transacties
-                .Where(t => t.VanRekening == rekening)
-                .Sum(t => t.Bedrag);
-            var naarTotaal = _context.Transacties
-                .Where(t => t.NaarRekening == rekening)
-                .Sum(t => t.Bedrag);
-            return naarTotaal - vanTotaal;
+            return _context.Transacties
+                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .Sum(t => t.NaarRekening == rekening ? t.Bedrag : (-1M * t.Bedrag));
         }
 
         public bool HasTransacties(Rekening rekening)
         {
             return _context.Transacties
-                .Where(t => t.VanRekening == rekening)
-                .Any()
-                || _context.Transacties
-                .Where(t => t.NaarRekening == rekening)
+                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
                 .Any();
         }
 
@@ -80,6 +73,11 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("RekeningId,Naam,Rekeningnummer,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
         {
+            if (IsNaamInUse(rekening))
+            {
+                ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(rekening);
@@ -116,6 +114,11 @@ namespace Kasboek.WebApp.Controllers
             if (id != rekening.RekeningId)
             {
                 return NotFound();
+            }
+
+            if (IsNaamInUse(rekening))
+            {
+                ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
             }
 
             if (ModelState.IsValid)
@@ -188,5 +191,15 @@ namespace Kasboek.WebApp.Controllers
         {
             return _context.Rekeningen.Any(r => r.RekeningId == id);
         }
+
+        private bool IsNaamInUse(Rekening rekening)
+        {
+            if (string.IsNullOrWhiteSpace(rekening.Naam)) return false;
+
+            return _context.Rekeningen.Any(r =>
+                r.RekeningId != rekening.RekeningId
+                && r.Naam == rekening.Naam);
+        }
+
     }
 }

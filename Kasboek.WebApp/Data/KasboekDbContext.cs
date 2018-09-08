@@ -60,6 +60,9 @@ namespace Kasboek.WebApp.Data
             modelBuilder.Entity<Transactie>()
                 .HasIndex(t => t.Omschrijving);
 
+            modelBuilder.Entity<Rekening>()
+                .HasIndex(c => c.Naam)
+                .IsUnique();
         }
 
     }

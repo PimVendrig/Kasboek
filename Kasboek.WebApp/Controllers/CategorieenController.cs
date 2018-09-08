@@ -162,6 +162,8 @@ namespace Kasboek.WebApp.Controllers
 
         private bool IsOmschrijvingInUse(Categorie categorie)
         {
+            if (string.IsNullOrWhiteSpace(categorie.Omschrijving)) return false;
+
             return _context.Categorieen.Any(c => 
                 c.CategorieId != categorie.CategorieId
                 && c.Omschrijving == categorie.Omschrijving);
