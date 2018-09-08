@@ -78,7 +78,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 _context.Add(transactie);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
             ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
             ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
@@ -133,7 +133,7 @@ namespace Kasboek.WebApp.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
             ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
             ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);

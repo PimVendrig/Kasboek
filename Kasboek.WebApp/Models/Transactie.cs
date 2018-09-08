@@ -18,6 +18,7 @@ namespace Kasboek.WebApp.Models
         [DataType(DataType.Currency)]
         public decimal Bedrag { get; set; }
 
+        [DisplayFormat(NullDisplayText = "- Geen omschrijving -")]
         [DataType(DataType.MultilineText)]
         [StringLength(500)]
         public string Omschrijving { get; set; }

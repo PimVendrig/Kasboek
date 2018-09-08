@@ -30,7 +30,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.Categorie)
             </th>
-            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -49,15 +48,10 @@
                 @Html.DisplayFor(modelItem => item.NaarRekening.Naam)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Omschrijving)
+                <a asp-action="Details" asp-route-id="@item.TransactieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a>
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Categorie.Omschrijving)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.TransactieId">Bewerken</a> |
-                <a asp-action="Details" asp-route-id="@item.TransactieId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.TransactieId">Verwijderen</a>
             </td>
         </tr>
 }

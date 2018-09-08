@@ -31,7 +31,10 @@
             @Html.DisplayNameFor(model => model.StandaardCategorie)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.StandaardCategorie.Omschrijving)
+            @if (Model.StandaardCategorieId.HasValue)
+            {
+                <a asp-controller="Categorieen" asp-action="Details" asp-route-id="@Model.StandaardCategorieId">@Html.DisplayFor(model => model.StandaardCategorie.Omschrijving)</a>
+            }
         </dd>
         <dt>
             Saldo
@@ -43,5 +46,6 @@
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.RekeningId">Bewerken</a> |
+    <a asp-action="Delete" asp-route-id="@Model.RekeningId">Verwijderen</a> |
     <a asp-action="Index">Terug naar rekeningen</a>
 </div>

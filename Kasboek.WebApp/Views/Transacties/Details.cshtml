@@ -25,13 +25,13 @@
             @Html.DisplayNameFor(model => model.VanRekening)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.VanRekening.Naam)
+            <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model.VanRekeningId">@Html.DisplayFor(model => model.VanRekening.Naam)</a>
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.NaarRekening)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.NaarRekening.Naam)
+            <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model.NaarRekeningId">@Html.DisplayFor(model => model.NaarRekening.Naam)</a>
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Omschrijving)
@@ -43,11 +43,15 @@
             @Html.DisplayNameFor(model => model.Categorie)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Categorie.Omschrijving)
+            @if (Model.CategorieId.HasValue)
+            {
+                <a asp-controller="Categorieen" asp-action="Details" asp-route-id="@Model.CategorieId">@Html.DisplayFor(model => model.Categorie.Omschrijving)</a>
+            }
         </dd>
     </dl>
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.TransactieId">Bewerken</a> |
+    <a asp-action="Delete" asp-route-id="@Model.TransactieId">Verwijderen</a> |
     <a asp-action="Index">Terug naar transacties</a>
 </div>

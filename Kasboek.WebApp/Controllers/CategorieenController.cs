@@ -63,7 +63,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 _context.Add(categorie);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = categorie.CategorieId });
             }
             return View(categorie);
         }
@@ -105,7 +105,7 @@ namespace Kasboek.WebApp.Controllers
                 {
                     _context.Update(categorie);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Details), new { id = categorie.CategorieId });
                 }
                 catch (DbUpdateConcurrencyException)
                 {

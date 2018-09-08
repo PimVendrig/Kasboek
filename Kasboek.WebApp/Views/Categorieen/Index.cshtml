@@ -15,19 +15,13 @@
                 <th>
                     @Html.DisplayNameFor(model => model.Omschrijving)
                 </th>
-            <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Omschrijving)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.CategorieId">Bewerken</a> |
-                <a asp-action="Details" asp-route-id="@item.CategorieId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.CategorieId">Verwijderen</a>
+                <a asp-action="Details" asp-route-id="@item.CategorieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a>
             </td>
         </tr>
 }

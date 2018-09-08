@@ -13,7 +13,10 @@
             @Html.DisplayNameFor(model => model.StandaardVanRekening)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.StandaardVanRekening.Naam)
+            @if (Model.StandaardVanRekeningId.HasValue)
+            {
+                <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model.StandaardVanRekeningId">@Html.DisplayFor(model => model.StandaardVanRekening.Naam)</a>
+            }
         </dd>
     </dl>
 </div>
