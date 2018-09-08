@@ -58,6 +58,16 @@ namespace Kasboek.WebApp.Controllers
             return naarTotaal - vanTotaal;
         }
 
+        public bool HasTransacties(Rekening rekening)
+        {
+            return _context.Transacties
+                .Where(t => t.VanRekening == rekening)
+                .Any()
+                || _context.Transacties
+                .Where(t => t.NaarRekening == rekening)
+                .Any();
+        }
+
         // GET: Rekeningen/Create
         public IActionResult Create()
         {
@@ -149,6 +159,12 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
+            ViewBag.DisableForm = false;
+            if (HasTransacties(rekening))
+            {
+                ModelState.AddModelError(string.Empty, "De rekening heeft nog transacties en kan daardoor niet verwijderd worden.");
+                ViewBag.DisableForm = true;
+            }
             ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }

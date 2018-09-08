@@ -43,8 +43,12 @@
     </dl>
 
     <form asp-action="Delete">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input type="hidden" asp-for="RekeningId" />
-        <input type="submit" value="Verwijderen" class="btn btn-default" /> |
+        @if (!ViewBag.DisableForm)
+        {
+            @:<input type="submit" value="Verwijderen" class="btn btn-default" /> |
+        }
         <a asp-action="Index">Terug naar rekeningen</a>
     </form>
 </div>
