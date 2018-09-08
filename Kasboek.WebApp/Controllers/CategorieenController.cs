@@ -54,25 +54,16 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategorieId,Omschrijving")] Categorie categorie)
         {
+            if (IsOmschrijvingInUse(categorie))
+            {
+                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
+            }
+
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Add(categorie);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException ex)
-                {
-                    if (EntityFrameworkUtil.HasUniqueIndexViolation(ex, "IX_Categorieen_Omschrijving"))
-                    {
-                        ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                _context.Add(categorie);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
             return View(categorie);
         }
@@ -103,6 +94,11 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
+            if (IsOmschrijvingInUse(categorie))
+            {
+                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -116,17 +112,6 @@ namespace Kasboek.WebApp.Controllers
                     if (!CategorieExists(categorie.CategorieId))
                     {
                         return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                catch (DbUpdateException ex)
-                {
-                    if (EntityFrameworkUtil.HasUniqueIndexViolation(ex, "IX_Categorieen_Omschrijving"))
-                    {
-                        ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
                     }
                     else
                     {
@@ -174,5 +159,13 @@ namespace Kasboek.WebApp.Controllers
         {
             return _context.Categorieen.Any(c => c.CategorieId == id);
         }
+
+        private bool IsOmschrijvingInUse(Categorie categorie)
+        {
+            return _context.Categorieen.Any(c => 
+                c.CategorieId != categorie.CategorieId
+                && c.Omschrijving == categorie.Omschrijving);
+        }
+
     }
 }

@@ -38,6 +38,7 @@ namespace Kasboek.WebApp.Models
 
         [Display(Name = "Categorie")]
         public int? CategorieId { get; set; }
+        [ForeignKey("CategorieId")]
         public Categorie Categorie { get; set; }
 
     }
