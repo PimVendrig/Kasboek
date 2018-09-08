@@ -74,9 +74,9 @@ namespace Kasboek.WebApp.Controllers
         public async Task<IActionResult> Create([Bind("RekeningId,Naam,Rekeningnummer,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
         {
             if (IsNaamInUse(rekening))
-            {
                 ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
-            }
+            if (IsRekeningnummerInUse(rekening))
+                ModelState.AddModelError(nameof(Rekening.Rekeningnummer), "Dit rekeningnummer is al in gebruik.");
 
             if (ModelState.IsValid)
             {
@@ -117,9 +117,9 @@ namespace Kasboek.WebApp.Controllers
             }
 
             if (IsNaamInUse(rekening))
-            {
                 ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
-            }
+            if (IsRekeningnummerInUse(rekening))
+                ModelState.AddModelError(nameof(Rekening.Rekeningnummer), "Dit rekeningnummer is al in gebruik.");
 
             if (ModelState.IsValid)
             {
@@ -199,6 +199,15 @@ namespace Kasboek.WebApp.Controllers
             return _context.Rekeningen.Any(r =>
                 r.RekeningId != rekening.RekeningId
                 && r.Naam == rekening.Naam);
+        }
+
+        private bool IsRekeningnummerInUse(Rekening rekening)
+        {
+            if (string.IsNullOrWhiteSpace(rekening.Rekeningnummer)) return false;
+
+            return _context.Rekeningen.Any(r =>
+                r.RekeningId != rekening.RekeningId
+                && r.Rekeningnummer == rekening.Rekeningnummer);
         }
 
     }

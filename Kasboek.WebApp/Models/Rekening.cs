@@ -13,7 +13,6 @@ namespace Kasboek.WebApp.Models
         [StringLength(100)]
         public string Naam { get; set; }
 
-        [DisplayFormat(ConvertEmptyStringToNull = false)]
         [StringLength(100)]
         public string Rekeningnummer { get; set; }
 
