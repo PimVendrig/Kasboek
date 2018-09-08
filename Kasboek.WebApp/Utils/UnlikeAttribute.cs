@@ -7,7 +7,6 @@ namespace Kasboek.WebApp.Utils
 
     /// <summary>
     /// Based on http://www.macaalay.com/2014/02/25/unobtrusive-client-and-server-side-not-equal-to-validation-in-mvc-using-custom-data-annotations/
-    /// and on https://stackoverflow.com/questions/36566836/asp-net-core-mvc-client-side-validation-for-custom-attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class UnlikeAttribute : ValidationAttribute, IClientModelValidator

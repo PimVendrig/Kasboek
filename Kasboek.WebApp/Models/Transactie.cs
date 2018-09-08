@@ -14,8 +14,7 @@ namespace Kasboek.WebApp.Models
         [Column(TypeName = "date")]
         public DateTime Datum { get; set; }
 
-        //[RegularExpression(@"^\d{0,16}(\,\d{1,2})?$")]
-        [Range(0.0, 9999999999999999.99)]
+        [Range(0.0, 999999999999999.99)]//Max van decimal in db is 9999999999999999.99, maar vanwege afronding naar 1E16 iets lager gezet.
         [DataType(DataType.Currency)]
         public decimal Bedrag { get; set; }
 
@@ -25,7 +24,6 @@ namespace Kasboek.WebApp.Models
         public string Omschrijving { get; set; }
 
         [Display(Name = "Van rekening")]
-        [Unlike(nameof(NaarRekeningId), "Naar rekening")]
         public int VanRekeningId { get; set; }
         [Display(Name = "Van rekening")]
         [ForeignKey("VanRekeningId")]

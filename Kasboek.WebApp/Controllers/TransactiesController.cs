@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Services;
+using System;
 
 namespace Kasboek.WebApp.Controllers
 {
@@ -53,10 +54,17 @@ namespace Kasboek.WebApp.Controllers
         // GET: Transacties/Create
         public IActionResult Create()
         {
+            //Bij aanmaken transactie deze voorvullen
+            var transactie = new Transactie
+            {
+                Bedrag = 0,
+                Datum = DateTime.Today
+            };
+
             ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context);
             ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context);
             ViewData["CategorieId"] = SelectListService.GetCategorieen(_context);
-            return View();
+            return View(transactie);
         }
 
         // POST: Transacties/Create
