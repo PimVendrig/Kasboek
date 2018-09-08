@@ -11,9 +11,10 @@ using System;
 namespace Kasboek.WebApp.Data.Migrations
 {
     [DbContext(typeof(KasboekDbContext))]
-    partial class KasboekDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180908175803_CategorieOmschrijvingUniek")]
+    partial class CategorieOmschrijvingUniek
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -53,6 +53,10 @@ namespace Kasboek.WebApp.Data
                 .HasForeignKey(nameof(Models.Instellingen.StandaardVanRekeningId))
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Categorie>()
+                .HasIndex(c => c.Omschrijving)
+                .IsUnique();
+
         }
 
     }

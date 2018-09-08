@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
+using Kasboek.WebApp.Utils;
 
 namespace Kasboek.WebApp.Controllers
 {
@@ -55,9 +56,23 @@ namespace Kasboek.WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(categorie);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(categorie);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    if (EntityFrameworkUtil.HasUniqueIndexViolation(ex, "IX_Categorieen_Omschrijving"))
+                    {
+                        ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
             return View(categorie);
         }
@@ -94,6 +109,7 @@ namespace Kasboek.WebApp.Controllers
                 {
                     _context.Update(categorie);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -106,7 +122,17 @@ namespace Kasboek.WebApp.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (DbUpdateException ex)
+                {
+                    if (EntityFrameworkUtil.HasUniqueIndexViolation(ex, "IX_Categorieen_Omschrijving"))
+                    {
+                        ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
             return View(categorie);
         }
