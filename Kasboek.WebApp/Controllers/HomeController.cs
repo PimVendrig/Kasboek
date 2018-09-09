@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Kasboek.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using Kasboek.WebApp.Models;
+using System.Diagnostics;
 
 namespace Kasboek.WebApp.Controllers
 {

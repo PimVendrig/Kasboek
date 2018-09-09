@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using Kasboek.WebApp.Models;
+using Kasboek.WebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Kasboek.WebApp.Models;
-using Kasboek.WebApp.Services;
+using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
@@ -71,7 +71,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var categorie = await _categorieenService.GetSingleOrDefaultAsync(id.Value);
+            var categorie = await _categorieenService.GetRawSingleOrDefaultAsync(id.Value);
             if (categorie == null)
             {
                 return NotFound();
@@ -139,7 +139,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var categorie = await _categorieenService.GetSingleOrDefaultAsync(id);
+            var categorie = await _categorieenService.GetRawSingleOrDefaultAsync(id);
             if (categorie == null)
             {
                 return NotFound();

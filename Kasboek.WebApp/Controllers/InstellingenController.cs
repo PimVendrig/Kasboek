@@ -1,37 +1,33 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Kasboek.WebApp.Data;
-using Kasboek.WebApp.Models;
+﻿using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Services;
+using Kasboek.WebApp.Utils;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class InstellingenController : Controller
     {
-        private readonly KasboekDbContext _context;
+        private readonly IInstellingenService _instellingenService;
+        private readonly IRekeningenService _rekeningenService;
 
-        public InstellingenController(KasboekDbContext context)
+        public InstellingenController(IInstellingenService instellingenService, IRekeningenService rekeningenService)
         {
-            _context = context;
+            _instellingenService = instellingenService;
+            _rekeningenService = rekeningenService;
         }
 
         // GET: Instellingen
         public async Task<IActionResult> Index()
         {
-            var instellingen = await _context.Instellingen
-                .Include(i => i.StandaardVanRekening)
-                .SingleAsync();
-
-            return View(instellingen);
+            return View(await _instellingenService.GetSingleAsync());
         }
 
         // GET: Instellingen/Edit
         public async Task<IActionResult> Edit()
         {
-            var instellingen = await _context.Instellingen.SingleAsync();
-            ViewData["StandaardVanRekeningId"] = SelectListService.GetRekeningen(_context, instellingen.StandaardVanRekeningId);
+            var instellingen = await _instellingenService.GetRawSingleAsync();
+            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), instellingen.StandaardVanRekeningId);
             return View(instellingen);
         }
 
@@ -40,7 +36,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([Bind("InstellingenId,StandaardVanRekeningId")] Instellingen instellingen)
         {
-            var instellingenId = await _context.Instellingen.Select(i => i.InstellingenId).SingleAsync();
+            var instellingenId = await _instellingenService.GetIdAsync();
 
             if (instellingenId != instellingen.InstellingenId)
             {
@@ -49,12 +45,12 @@ namespace Kasboek.WebApp.Controllers
 
             if (ModelState.IsValid)
             {
-                _context.Update(instellingen);
-                await _context.SaveChangesAsync();
+                _instellingenService.Update(instellingen);
+                await _instellingenService.SaveChangesAsync();
 
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StandaardVanRekeningId"] = SelectListService.GetRekeningen(_context, instellingen.StandaardVanRekeningId);
+            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), instellingen.StandaardVanRekeningId);
             return View(instellingen);
         }
     }

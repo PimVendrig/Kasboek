@@ -1,20 +1,23 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Kasboek.WebApp.Data;
+﻿using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Services;
+using Kasboek.WebApp.Utils;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class RekeningenController : Controller
     {
         private readonly KasboekDbContext _context;
+        private readonly ICategorieenService _categorieenService;
 
-        public RekeningenController(KasboekDbContext context)
+        public RekeningenController(KasboekDbContext context, ICategorieenService categorieenService)
         {
             _context = context;
+            _categorieenService = categorieenService;
         }
 
         // GET: Rekeningen
@@ -62,9 +65,9 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Rekeningen/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context);
+            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync());
             return View();
         }
 
@@ -84,7 +87,7 @@ namespace Kasboek.WebApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = rekening.RekeningId });
             }
-            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context, rekening.StandaardCategorieId);
+            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
             return View(rekening);
         }
 
@@ -101,7 +104,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context, rekening.StandaardCategorieId);
+            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
             ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }
@@ -141,7 +144,7 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Details), new { id = rekening.RekeningId });
             }
-            ViewData["StandaardCategorieId"] = SelectListService.GetCategorieen(_context, rekening.StandaardCategorieId);
+            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
             ViewData["Saldo"] = GetSaldo(rekening);
             return View(rekening);
         }

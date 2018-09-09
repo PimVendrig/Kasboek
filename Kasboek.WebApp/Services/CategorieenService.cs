@@ -9,7 +9,6 @@ namespace Kasboek.WebApp.Services
 {
     public class CategorieenService : CrudService<Categorie>, ICategorieenService
     {
-
         public CategorieenService(KasboekDbContext context) : base(context)
         {
         }
@@ -21,10 +20,23 @@ namespace Kasboek.WebApp.Services
                 .ToListAsync();
         }
 
-        public async override Task<Categorie> GetSingleOrDefaultAsync(int id)
+        public async override Task<Categorie> GetRawSingleOrDefaultAsync(int id)
         {
             return await _context.Categorieen
                 .SingleOrDefaultAsync(c => c.CategorieId == id);
+        }
+
+        public async override Task<Categorie> GetSingleOrDefaultAsync(int id)
+        {
+            return await GetRawSingleOrDefaultAsync(id);
+        }
+
+        public async Task<IList<KeyValuePair<int, string>>> GetSelectListAsync()
+        {
+            return await _context.Categorieen
+                .OrderBy(c => c.Omschrijving)
+                .Select(r => new KeyValuePair<int, string>(r.CategorieId, r.Omschrijving))
+                .ToListAsync();
         }
 
         public async Task<bool> ExistsAsync(int id)
@@ -42,6 +54,5 @@ namespace Kasboek.WebApp.Services
                     c.CategorieId != categorie.CategorieId
                     && c.Omschrijving == categorie.Omschrijving);
         }
-
     }
 }

@@ -1,21 +1,26 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Kasboek.WebApp.Data;
+﻿using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Services;
+using Kasboek.WebApp.Utils;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class TransactiesController : Controller
     {
         private readonly KasboekDbContext _context;
+        private readonly ICategorieenService _categorieenService;
+        private readonly IRekeningenService _rekeningenService;
 
-        public TransactiesController(KasboekDbContext context)
+        public TransactiesController(KasboekDbContext context, ICategorieenService categorieenService, IRekeningenService rekeningenService)
         {
             _context = context;
+            _categorieenService = categorieenService;
+            _rekeningenService = rekeningenService;
         }
 
         // GET: Transacties
@@ -63,9 +68,9 @@ namespace Kasboek.WebApp.Controllers
                 VanRekeningId = instellingen.StandaardVanRekeningId ?? 0
             };
 
-            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context);
-            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context);
+            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync());
+            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync());
             return View(transactie);
         }
 
@@ -80,9 +85,9 @@ namespace Kasboek.WebApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
-            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context, transactie.CategorieId);
+            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), transactie.CategorieId);
             return View(transactie);
         }
 
@@ -99,9 +104,9 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context, transactie.CategorieId);
+            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), transactie.CategorieId);
             return View(transactie);
         }
 
@@ -135,9 +140,9 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
-            ViewData["NaarRekeningId"] = SelectListService.GetRekeningen(_context, transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = SelectListService.GetRekeningen(_context, transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListService.GetCategorieen(_context, transactie.CategorieId);
+            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), transactie.CategorieId);
             return View(transactie);
         }
 

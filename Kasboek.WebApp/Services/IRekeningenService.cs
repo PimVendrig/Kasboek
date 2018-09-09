@@ -4,10 +4,8 @@ using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Services
 {
-    public interface ICategorieenService : ICrudService<Categorie>
+    public interface IRekeningenService : ICrudService<Rekening>
     {
         Task<IList<KeyValuePair<int, string>>> GetSelectListAsync();
-        Task<bool> ExistsAsync(int id);
-        Task<bool> IsOmschrijvingInUseAsync(Categorie categorie);
     }
 }

@@ -12,7 +12,7 @@ namespace Kasboek.WebApp.Data.Migrations
 {
     [DbContext(typeof(KasboekDbContext))]
     [Migration("20180908163737_Instellingen")]
-    partial class Instellingen
+    partial class InstellingenMaken
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

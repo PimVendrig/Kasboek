@@ -6,7 +6,6 @@ namespace Kasboek.WebApp.Services
 {
     public interface ICrudService<TEntity> where TEntity : class
     {
-
         EntityEntry<TEntity> Add(TEntity entity);
         EntityEntry<TEntity> Update(TEntity entity);
         EntityEntry<TEntity> Remove(TEntity entity);
@@ -14,7 +13,7 @@ namespace Kasboek.WebApp.Services
 
 
         Task<IList<TEntity>> GetListAsync();
+        Task<TEntity> GetRawSingleOrDefaultAsync(int id);
         Task<TEntity> GetSingleOrDefaultAsync(int id);
-
     }
 }
