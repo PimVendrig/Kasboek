@@ -37,15 +37,15 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
+            await SetSaldoAsync(rekening);
 
-            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
             return View(rekening);
         }
 
         // GET: Rekeningen/Create
         public async Task<IActionResult> Create()
         {
-            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync());
+            await SetSelectListsAsync(null);
             return View();
         }
 
@@ -61,7 +61,7 @@ namespace Kasboek.WebApp.Controllers
                 await _rekeningenService.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = rekening.RekeningId });
             }
-            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
+            await SetSelectListsAsync(rekening);
             return View(rekening);
         }
 
@@ -78,8 +78,10 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
-            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
+            await Task.WhenAll(
+                SetSelectListsAsync(rekening),
+                SetSaldoAsync(rekening));
+            
             return View(rekening);
         }
 
@@ -114,8 +116,10 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Details), new { id = rekening.RekeningId });
             }
-            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
-            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
+            await Task.WhenAll(
+                SetSelectListsAsync(rekening),
+                SetSaldoAsync(rekening));
+
             return View(rekening);
         }
 
@@ -139,7 +143,8 @@ namespace Kasboek.WebApp.Controllers
                 ModelState.AddModelError(string.Empty, "De rekening heeft nog transacties en kan daardoor niet verwijderd worden.");
                 ViewBag.DisableForm = true;
             }
-            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
+            await SetSaldoAsync(rekening);
+
             return View(rekening);
         }
 
@@ -156,6 +161,16 @@ namespace Kasboek.WebApp.Controllers
             _rekeningenService.Remove(rekening);
             await _rekeningenService.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task SetSelectListsAsync(Rekening rekening)
+        {
+            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening?.StandaardCategorieId);
+        }
+
+        private async Task SetSaldoAsync(Rekening rekening)
+        {
+            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
         }
 
         private async Task PerformExtraValidationsAsync(Rekening rekening)

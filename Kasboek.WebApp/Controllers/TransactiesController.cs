@@ -58,9 +58,7 @@ namespace Kasboek.WebApp.Controllers
                 VanRekeningId = instellingen.StandaardVanRekeningId ?? 0
             };
 
-            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync());
-            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync());
+            await SetSelectListsAsync(transactie);
             return View(transactie);
         }
 
@@ -75,9 +73,7 @@ namespace Kasboek.WebApp.Controllers
                 await _transactiesService.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
-            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), transactie.CategorieId);
+            await SetSelectListsAsync(transactie);
             return View(transactie);
         }
 
@@ -94,9 +90,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), transactie.CategorieId);
+            await SetSelectListsAsync(transactie);
             return View(transactie);
         }
 
@@ -130,9 +124,7 @@ namespace Kasboek.WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
-            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
-            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.VanRekeningId);
-            ViewData["CategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), transactie.CategorieId);
+            await SetSelectListsAsync(transactie);
             return View(transactie);
         }
 
@@ -166,6 +158,16 @@ namespace Kasboek.WebApp.Controllers
             _transactiesService.Remove(transactie);
             await _transactiesService.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task SetSelectListsAsync(Transactie transactie)
+        {
+            var rekeningenTask = _rekeningenService.GetSelectListAsync();
+            var categorieenTask = _categorieenService.GetSelectListAsync();
+            await Task.WhenAll(rekeningenTask, categorieenTask);
+            ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(rekeningenTask.Result, transactie.NaarRekeningId);
+            ViewData["VanRekeningId"] = SelectListUtil.GetSelectList(rekeningenTask.Result, transactie.VanRekeningId);
+            ViewData["CategorieId"] = SelectListUtil.GetSelectList(categorieenTask.Result, transactie.CategorieId);
         }
     }
 }

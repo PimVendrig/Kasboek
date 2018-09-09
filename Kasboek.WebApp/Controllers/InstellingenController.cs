@@ -27,7 +27,7 @@ namespace Kasboek.WebApp.Controllers
         public async Task<IActionResult> Edit()
         {
             var instellingen = await _instellingenService.GetRawSingleAsync();
-            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), instellingen.StandaardVanRekeningId);
+            await SetSelectListsAsync(instellingen);
             return View(instellingen);
         }
 
@@ -50,8 +50,13 @@ namespace Kasboek.WebApp.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), instellingen.StandaardVanRekeningId);
+            await SetSelectListsAsync(instellingen);
             return View(instellingen);
+        }
+
+        private async Task SetSelectListsAsync(Instellingen instellingen)
+        {
+            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), instellingen.StandaardVanRekeningId);
         }
     }
 }

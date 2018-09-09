@@ -49,11 +49,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategorieId,Omschrijving")] Categorie categorie)
         {
-            if (await _categorieenService.IsOmschrijvingInUseAsync(categorie))
-            {
-                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
-            }
-
+            await PerformExtraValidationsAsync(categorie);
             if (ModelState.IsValid)
             {
                 _categorieenService.Add(categorie);
@@ -89,11 +85,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            if (await _categorieenService.IsOmschrijvingInUseAsync(categorie))
-            {
-                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
-            }
-
+            await PerformExtraValidationsAsync(categorie);
             if (ModelState.IsValid)
             {
                 try
@@ -149,5 +141,12 @@ namespace Kasboek.WebApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        private async Task PerformExtraValidationsAsync(Categorie categorie)
+        {
+            if (await _categorieenService.IsOmschrijvingInUseAsync(categorie))
+            {
+                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
+            }
+        }
     }
 }
