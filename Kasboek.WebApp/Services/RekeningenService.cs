@@ -14,19 +14,26 @@ namespace Kasboek.WebApp.Services
         {
         }
 
-        public override Task<IList<Rekening>> GetListAsync()
+        public async override Task<IList<Rekening>> GetListAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Rekeningen
+                .Include(r => r.StandaardCategorie)
+                .OrderByDescending(r => r.IsEigenRekening)
+                .ThenBy(r => r.Naam)
+                .ToListAsync();
         }
 
-        public override Task<Rekening> GetRawSingleOrDefaultAsync(int id)
+        public async override Task<Rekening> GetRawSingleOrDefaultAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Rekeningen
+                .SingleOrDefaultAsync(r => r.RekeningId == id);
         }
 
-        public override Task<Rekening> GetSingleOrDefaultAsync(int id)
+        public async override Task<Rekening> GetSingleOrDefaultAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Rekeningen
+                .Include(r => r.StandaardCategorie)
+                .SingleOrDefaultAsync(r => r.RekeningId == id);
         }
 
         public async Task<IList<KeyValuePair<int, string>>> GetSelectListAsync()
@@ -36,6 +43,46 @@ namespace Kasboek.WebApp.Services
                 .ThenBy(r => r.Naam)
                 .Select(r => new KeyValuePair<int, string>(r.RekeningId, r.Naam))
                 .ToListAsync();
+        }
+        
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _context.Rekeningen
+                .AnyAsync(r => r.RekeningId == id);
+        }
+
+        public async Task<decimal> GetSaldoAsync(Rekening rekening)
+        {
+            return await _context.Transacties
+                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .SumAsync(t => t.NaarRekening == rekening ? t.Bedrag : (-1M * t.Bedrag));
+        }
+
+        public async Task<bool> HasTransactiesAsync(Rekening rekening)
+        {
+            return await _context.Transacties
+                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .AnyAsync();
+        }
+
+        public async Task<bool> IsNaamInUseAsync(Rekening rekening)
+        {
+            if (string.IsNullOrWhiteSpace(rekening.Naam)) return false;
+
+            return await _context.Rekeningen
+                .AnyAsync(r =>
+                    r.RekeningId != rekening.RekeningId
+                    && r.Naam == rekening.Naam);
+        }
+
+        public async Task<bool> IsRekeningnummerInUseAsync(Rekening rekening)
+        {
+            if (string.IsNullOrWhiteSpace(rekening.Rekeningnummer)) return false;
+
+            return await _context.Rekeningen
+                .AnyAsync(r =>
+                    r.RekeningId != rekening.RekeningId
+                    && r.Rekeningnummer == rekening.Rekeningnummer);
         }
     }
 }

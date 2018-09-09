@@ -1,33 +1,27 @@
-﻿using Kasboek.WebApp.Data;
-using Kasboek.WebApp.Models;
+﻿using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Services;
 using Kasboek.WebApp.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class RekeningenController : Controller
     {
-        private readonly KasboekDbContext _context;
+        private readonly IRekeningenService _rekeningenService;
         private readonly ICategorieenService _categorieenService;
 
-        public RekeningenController(KasboekDbContext context, ICategorieenService categorieenService)
+        public RekeningenController(IRekeningenService rekeningenService, ICategorieenService categorieenService)
         {
-            _context = context;
+            _rekeningenService = rekeningenService;
             _categorieenService = categorieenService;
         }
 
         // GET: Rekeningen
         public async Task<IActionResult> Index()
         {
-            var rekeningen = _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
-                .OrderByDescending(r => r.IsEigenRekening)
-                .ThenBy(r => r.Naam);
-            return View(await rekeningen.ToListAsync());
+            return View(await _rekeningenService.GetListAsync());
         }
 
         // GET: Rekeningen/Details/5
@@ -38,30 +32,14 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
-                .SingleOrDefaultAsync(r => r.RekeningId == id);
+            var rekening = await _rekeningenService.GetSingleOrDefaultAsync(id.Value);
             if (rekening == null)
             {
                 return NotFound();
             }
 
-            ViewData["Saldo"] = GetSaldo(rekening);
+            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
             return View(rekening);
-        }
-
-        public decimal GetSaldo(Rekening rekening)
-        {
-            return _context.Transacties
-                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
-                .Sum(t => t.NaarRekening == rekening ? t.Bedrag : (-1M * t.Bedrag));
-        }
-
-        public bool HasTransacties(Rekening rekening)
-        {
-            return _context.Transacties
-                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
-                .Any();
         }
 
         // GET: Rekeningen/Create
@@ -76,15 +54,11 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("RekeningId,Naam,Rekeningnummer,IsEigenRekening,StandaardCategorieId")] Rekening rekening)
         {
-            if (IsNaamInUse(rekening))
-                ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
-            if (IsRekeningnummerInUse(rekening))
-                ModelState.AddModelError(nameof(Rekening.Rekeningnummer), "Dit rekeningnummer is al in gebruik.");
-
+            await PerformExtraValidationsAsync(rekening);
             if (ModelState.IsValid)
             {
-                _context.Add(rekening);
-                await _context.SaveChangesAsync();
+                _rekeningenService.Add(rekening);
+                await _rekeningenService.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = rekening.RekeningId });
             }
             ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
@@ -99,13 +73,13 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(r => r.RekeningId == id);
+            var rekening = await _rekeningenService.GetRawSingleOrDefaultAsync(id.Value);
             if (rekening == null)
             {
                 return NotFound();
             }
             ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
-            ViewData["Saldo"] = GetSaldo(rekening);
+            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
             return View(rekening);
         }
 
@@ -119,21 +93,17 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            if (IsNaamInUse(rekening))
-                ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
-            if (IsRekeningnummerInUse(rekening))
-                ModelState.AddModelError(nameof(Rekening.Rekeningnummer), "Dit rekeningnummer is al in gebruik.");
-
+            await PerformExtraValidationsAsync(rekening);
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(rekening);
-                    await _context.SaveChangesAsync();
+                    _rekeningenService.Update(rekening);
+                    await _rekeningenService.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!RekeningExists(rekening.RekeningId))
+                    if (!await _rekeningenService.ExistsAsync(rekening.RekeningId))
                     {
                         return NotFound();
                     }
@@ -145,7 +115,7 @@ namespace Kasboek.WebApp.Controllers
                 return RedirectToAction(nameof(Details), new { id = rekening.RekeningId });
             }
             ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening.StandaardCategorieId);
-            ViewData["Saldo"] = GetSaldo(rekening);
+            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
             return View(rekening);
         }
 
@@ -157,21 +127,19 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var rekening = await _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
-                .SingleOrDefaultAsync(r => r.RekeningId == id);
+            var rekening = await _rekeningenService.GetSingleOrDefaultAsync(id.Value);
             if (rekening == null)
             {
                 return NotFound();
             }
 
             ViewBag.DisableForm = false;
-            if (HasTransacties(rekening))
+            if (await _rekeningenService.HasTransactiesAsync(rekening))
             {
                 ModelState.AddModelError(string.Empty, "De rekening heeft nog transacties en kan daardoor niet verwijderd worden.");
                 ViewBag.DisableForm = true;
             }
-            ViewData["Saldo"] = GetSaldo(rekening);
+            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
             return View(rekening);
         }
 
@@ -180,38 +148,33 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var rekening = await _context.Rekeningen.SingleOrDefaultAsync(r => r.RekeningId == id);
+            var rekening = await _rekeningenService.GetRawSingleOrDefaultAsync(id);
             if (rekening == null)
             {
                 return NotFound();
             }
-            _context.Rekeningen.Remove(rekening);
-            await _context.SaveChangesAsync();
+            _rekeningenService.Remove(rekening);
+            await _rekeningenService.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool RekeningExists(int id)
+        private async Task PerformExtraValidationsAsync(Rekening rekening)
         {
-            return _context.Rekeningen.Any(r => r.RekeningId == id);
+            await Task.WhenAll(
+                ValidateNaamInUseAsync(rekening),
+                ValidateRekeningnummerInUseAsync(rekening));
         }
 
-        private bool IsNaamInUse(Rekening rekening)
+        private async Task ValidateNaamInUseAsync(Rekening rekening)
         {
-            if (string.IsNullOrWhiteSpace(rekening.Naam)) return false;
-
-            return _context.Rekeningen.Any(r =>
-                r.RekeningId != rekening.RekeningId
-                && r.Naam == rekening.Naam);
+            if (await _rekeningenService.IsNaamInUseAsync(rekening))
+                ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
         }
 
-        private bool IsRekeningnummerInUse(Rekening rekening)
+        private async Task ValidateRekeningnummerInUseAsync(Rekening rekening)
         {
-            if (string.IsNullOrWhiteSpace(rekening.Rekeningnummer)) return false;
-
-            return _context.Rekeningen.Any(r =>
-                r.RekeningId != rekening.RekeningId
-                && r.Rekeningnummer == rekening.Rekeningnummer);
+            if (await _rekeningenService.IsRekeningnummerInUseAsync(rekening))
+                ModelState.AddModelError(nameof(Rekening.Rekeningnummer), "Dit rekeningnummer is al in gebruik.");
         }
-
     }
 }
