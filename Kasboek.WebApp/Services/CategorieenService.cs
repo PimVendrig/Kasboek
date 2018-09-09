@@ -45,6 +45,16 @@ namespace Kasboek.WebApp.Services
                 .AnyAsync(c => c.CategorieId == id);
         }
 
+        public async Task<decimal> GetSaldoAsync(Categorie categorie)
+        {
+            return await _context.Transacties
+                .Where(t => t.Categorie == categorie)
+                .SumAsync(t => 
+                    t.NaarRekening.IsEigenRekening && !t.VanRekening.IsEigenRekening ? t.Bedrag
+                    : t.VanRekening.IsEigenRekening && !t.NaarRekening.IsEigenRekening ? (-1M * t.Bedrag)
+                    : 0);
+        }
+
         public async Task<bool> IsOmschrijvingInUseAsync(Categorie categorie)
         {
             if (string.IsNullOrWhiteSpace(categorie.Omschrijving)) return false;

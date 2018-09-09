@@ -34,6 +34,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
+            await SetSaldoAsync(categorie);
 
             return View(categorie);
         }
@@ -72,6 +73,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
+            await SetSaldoAsync(categorie);
             return View(categorie);
         }
 
@@ -106,6 +108,7 @@ namespace Kasboek.WebApp.Controllers
                     }
                 }
             }
+            await SetSaldoAsync(categorie);
             return View(categorie);
         }
 
@@ -122,6 +125,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
+            await SetSaldoAsync(categorie);
 
             return View(categorie);
         }
@@ -139,6 +143,11 @@ namespace Kasboek.WebApp.Controllers
             _categorieenService.Remove(categorie);
             await _categorieenService.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task SetSaldoAsync(Categorie categorie)
+        {
+            ViewData["Saldo"] = await _categorieenService.GetSaldoAsync(categorie);
         }
 
         private async Task PerformExtraValidationsAsync(Categorie categorie)

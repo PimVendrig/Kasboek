@@ -8,6 +8,7 @@ namespace Kasboek.WebApp.Services
     {
         Task<IList<KeyValuePair<int, string>>> GetSelectListAsync();
         Task<bool> ExistsAsync(int id);
+        Task<decimal> GetSaldoAsync(Categorie categorie);
         Task<bool> IsOmschrijvingInUseAsync(Categorie categorie);
     }
 }
