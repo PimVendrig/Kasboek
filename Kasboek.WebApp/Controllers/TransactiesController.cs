@@ -1,38 +1,32 @@
-﻿using Kasboek.WebApp.Data;
-using Kasboek.WebApp.Models;
+﻿using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Services;
 using Kasboek.WebApp.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class TransactiesController : Controller
     {
-        private readonly KasboekDbContext _context;
+        private readonly ITransactiesService _transactiesService;
         private readonly ICategorieenService _categorieenService;
         private readonly IRekeningenService _rekeningenService;
+        private readonly IInstellingenService _instellingenService;
 
-        public TransactiesController(KasboekDbContext context, ICategorieenService categorieenService, IRekeningenService rekeningenService)
+        public TransactiesController(ITransactiesService transactiesService, ICategorieenService categorieenService, IRekeningenService rekeningenService, IInstellingenService instellingenService)
         {
-            _context = context;
+            _transactiesService = transactiesService;
             _categorieenService = categorieenService;
             _rekeningenService = rekeningenService;
+            _instellingenService = instellingenService;
         }
 
         // GET: Transacties
         public async Task<IActionResult> Index()
         {
-            var transacties = _context.Transacties
-                .Include(t => t.NaarRekening)
-                .Include(t => t.VanRekening)
-                .Include(t => t.Categorie)
-                .OrderByDescending(t => t.Datum)
-                .ThenByDescending(t => t.TransactieId);
-            return View(await transacties.ToListAsync());
+            return View(await _transactiesService.GetListAsync());
         }
 
         // GET: Transacties/Details/5
@@ -43,11 +37,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var transactie = await _context.Transacties
-                .Include(t => t.NaarRekening)
-                .Include(t => t.VanRekening)
-                .Include(t => t.Categorie)
-                .SingleOrDefaultAsync(t => t.TransactieId == id);
+            var transactie = await _transactiesService.GetSingleOrDefaultAsync(id.Value);
             if (transactie == null)
             {
                 return NotFound();
@@ -60,7 +50,7 @@ namespace Kasboek.WebApp.Controllers
         public async Task<IActionResult> Create()
         {
             //Bij aanmaken transactie deze voorvullen
-            var instellingen = await _context.Instellingen.SingleAsync();
+            var instellingen = await _instellingenService.GetSingleAsync();
             var transactie = new Transactie
             {
                 Datum = DateTime.Today,
@@ -81,8 +71,8 @@ namespace Kasboek.WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(transactie);
-                await _context.SaveChangesAsync();
+                _transactiesService.Add(transactie);
+                await _transactiesService.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
             }
             ViewData["NaarRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), transactie.NaarRekeningId);
@@ -99,7 +89,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var transactie = await _context.Transacties.SingleOrDefaultAsync(t => t.TransactieId == id);
+            var transactie = await _transactiesService.GetRawSingleOrDefaultAsync(id.Value);
             if (transactie == null)
             {
                 return NotFound();
@@ -124,12 +114,12 @@ namespace Kasboek.WebApp.Controllers
             {
                 try
                 {
-                    _context.Update(transactie);
-                    await _context.SaveChangesAsync();
+                    _transactiesService.Update(transactie);
+                    await _transactiesService.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TransactieExists(transactie.TransactieId))
+                    if (!await _transactiesService.ExistsAsync(transactie.TransactieId))
                     {
                         return NotFound();
                     }
@@ -154,11 +144,7 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
 
-            var transactie = await _context.Transacties
-                .Include(t => t.NaarRekening)
-                .Include(t => t.VanRekening)
-                .Include(t => t.Categorie)
-                .SingleOrDefaultAsync(t => t.TransactieId == id);
+            var transactie = await _transactiesService.GetSingleOrDefaultAsync(id.Value);
             if (transactie == null)
             {
                 return NotFound();
@@ -172,19 +158,14 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var transactie = await _context.Transacties.SingleOrDefaultAsync(t => t.TransactieId == id);
+            var transactie = await _transactiesService.GetRawSingleOrDefaultAsync(id);
             if (transactie == null)
             {
                 return NotFound();
             }
-            _context.Transacties.Remove(transactie);
-            await _context.SaveChangesAsync();
+            _transactiesService.Remove(transactie);
+            await _transactiesService.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool TransactieExists(int id)
-        {
-            return _context.Transacties.Any(t => t.TransactieId == id);
         }
     }
 }

@@ -26,9 +26,10 @@ namespace Kasboek.WebApp
 
             services.AddMvc();
 
-            services.AddScoped<ICategorieenService, CategorieenService>();
             services.AddScoped<IInstellingenService, InstellingenService>();
+            services.AddScoped<ICategorieenService, CategorieenService>();
             services.AddScoped<IRekeningenService, RekeningenService>();
+            services.AddScoped<ITransactiesService, TransactiesService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
