@@ -9,8 +9,11 @@ namespace Kasboek.WebApp.Services
 {
     public class TransactiesService : CrudService<Transactie>, ITransactiesService
     {
-        public TransactiesService(KasboekDbContext context) : base(context)
+        private readonly IRekeningenService _rekeningenService;
+
+        public TransactiesService(KasboekDbContext context, IRekeningenService rekeningenService) : base(context)
         {
+            _rekeningenService = rekeningenService;
         }
 
         public async override Task<IList<Transactie>> GetListAsync()
@@ -43,6 +46,30 @@ namespace Kasboek.WebApp.Services
         {
             return await _context.Transacties
                 .AnyAsync(t => t.TransactieId == id);
+        }
+
+        public async Task DetermineCategorieAsync(Transactie transactie)
+        {
+            if (!transactie.CategorieId.HasValue)
+            {
+                //Als er geen categorie is ingesteld, achterhaal via de standaard categorieën
+                await SetStandaardCategorieAsync(transactie);
+            }
+        }
+
+        private async Task SetStandaardCategorieAsync(Transactie transactie)
+        {
+            var vanRekening = await _rekeningenService.GetRawSingleOrDefaultAsync(transactie.VanRekeningId);
+            if (vanRekening.StandaardCategorieId.HasValue)
+            {
+                transactie.CategorieId = vanRekening.StandaardCategorieId;
+                return;
+            }
+            var naarRekening = await _rekeningenService.GetRawSingleOrDefaultAsync(transactie.NaarRekeningId);
+            if (naarRekening.StandaardCategorieId.HasValue)
+            {
+                transactie.CategorieId = naarRekening.StandaardCategorieId;
+            }
         }
     }
 }

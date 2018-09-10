@@ -69,6 +69,7 @@ namespace Kasboek.WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                await _transactiesService.DetermineCategorieAsync(transactie);
                 _transactiesService.Add(transactie);
                 await _transactiesService.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = transactie.TransactieId });
