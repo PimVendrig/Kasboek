@@ -12,12 +12,16 @@
         <dt>
             @Html.DisplayNameFor(model => model.StandaardVanRekening)
         </dt>
-        <dd>
-            @if (Model.StandaardVanRekeningId.HasValue)
-            {
+        @if (Model.StandaardVanRekeningId.HasValue)
+        {
+            <dd class="@(Model.StandaardVanRekening.IsEigenRekening ? "eigen-rekening" : "")">
                 <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model.StandaardVanRekeningId">@Html.DisplayFor(model => model.StandaardVanRekening.Naam)</a>
-            }
-        </dd>
+            </dd>
+        }
+        else
+        {
+            <dd></dd>
+        }
     </dl>
 </div>
 <div>

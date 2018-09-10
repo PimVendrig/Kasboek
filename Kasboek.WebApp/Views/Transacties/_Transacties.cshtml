@@ -25,26 +25,26 @@
     <tbody>
         @foreach (var item in Model)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Datum)
-                </td>
-                <td class="currency">
-                    @Html.DisplayFor(modelItem => item.Bedrag)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.VanRekening.Naam)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.NaarRekening.Naam)
-                </td>
-                <td>
-                    <a asp-controller="Transacties" asp-action="Details" asp-route-id="@item.TransactieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a>
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Categorie.Omschrijving)
-                </td>
-            </tr>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Datum)
+            </td>
+            <td class="currency">
+                @Html.DisplayFor(modelItem => item.Bedrag)
+            </td>
+            <td class="@(item.VanRekening.IsEigenRekening ? "eigen-rekening" : "")">
+                @Html.DisplayFor(modelItem => item.VanRekening.Naam)
+            </td>
+            <td class="@(item.NaarRekening.IsEigenRekening ? "eigen-rekening" : "")">
+                @Html.DisplayFor(modelItem => item.NaarRekening.Naam)
+            </td>
+            <td>
+                <a asp-controller="Transacties" asp-action="Details" asp-route-id="@item.TransactieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Categorie.Omschrijving)
+            </td>
+        </tr>
         }
     </tbody>
 </table>

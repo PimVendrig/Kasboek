@@ -9,9 +9,6 @@
                 @Html.DisplayNameFor(model => model.Rekeningnummer)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IsEigenRekening)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.StandaardCategorie)
             </th>
         </tr>
@@ -20,14 +17,11 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>
+                <td class="@(item.IsEigenRekening ? "eigen-rekening" : "")">
                     <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@item.RekeningId">@Html.DisplayFor(modelItem => item.Naam)</a>
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Rekeningnummer)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.IsEigenRekening)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.StandaardCategorie.Omschrijving)

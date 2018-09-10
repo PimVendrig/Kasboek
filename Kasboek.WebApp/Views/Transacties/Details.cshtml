@@ -24,13 +24,13 @@
         <dt>
             @Html.DisplayNameFor(model => model.VanRekening)
         </dt>
-        <dd>
+        <dd class="@(Model.VanRekening.IsEigenRekening ? "eigen-rekening" : "")">
             <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model.VanRekeningId">@Html.DisplayFor(model => model.VanRekening.Naam)</a>
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.NaarRekening)
         </dt>
-        <dd>
+        <dd class="@(Model.NaarRekening.IsEigenRekening ? "eigen-rekening" : "")">
             <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model.NaarRekeningId">@Html.DisplayFor(model => model.NaarRekening.Naam)</a>
         </dd>
         <dt>
