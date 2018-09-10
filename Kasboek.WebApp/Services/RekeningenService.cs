@@ -14,12 +14,17 @@ namespace Kasboek.WebApp.Services
         {
         }
 
-        public async override Task<IList<Rekening>> GetListAsync()
+        private IQueryable<Rekening> GetListQuery()
         {
-            return await _context.Rekeningen
+            return _context.Rekeningen
                 .Include(r => r.StandaardCategorie)
                 .OrderByDescending(r => r.IsEigenRekening)
-                .ThenBy(r => r.Naam)
+                .ThenBy(r => r.Naam);
+        }
+
+        public async override Task<IList<Rekening>> GetListAsync()
+        {
+            return await GetListQuery()
                 .ToListAsync();
         }
 
@@ -38,9 +43,7 @@ namespace Kasboek.WebApp.Services
 
         public async Task<IList<KeyValuePair<int, string>>> GetSelectListAsync()
         {
-            return await _context.Rekeningen
-                .OrderByDescending(r => r.IsEigenRekening)
-                .ThenBy(r => r.Naam)
+            return await GetListQuery()
                 .Select(r => new KeyValuePair<int, string>(r.RekeningId, r.Naam))
                 .ToListAsync();
         }
@@ -83,6 +86,13 @@ namespace Kasboek.WebApp.Services
                 .AnyAsync(r =>
                     r.RekeningId != rekening.RekeningId
                     && r.Rekeningnummer == rekening.Rekeningnummer);
+        }
+
+        public async Task<IList<Rekening>> GetListByStandaardCategorieAsync(Categorie categorie)
+        {
+            return await GetListQuery()
+                .Where(r => r.StandaardCategorie == categorie)
+                .ToListAsync();
         }
     }
 }

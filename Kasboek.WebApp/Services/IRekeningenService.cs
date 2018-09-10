@@ -12,5 +12,6 @@ namespace Kasboek.WebApp.Services
         Task<bool> HasTransactiesAsync(Rekening rekening);
         Task<bool> IsNaamInUseAsync(Rekening rekening);
         Task<bool> IsRekeningnummerInUseAsync(Rekening rekening);
+        Task<IList<Rekening>> GetListByStandaardCategorieAsync(Categorie categorie);
     }
 }

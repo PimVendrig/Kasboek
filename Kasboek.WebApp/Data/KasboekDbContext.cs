@@ -43,7 +43,7 @@ namespace Kasboek.WebApp.Data
 
             modelBuilder.Entity<Rekening>()
                 .HasOne(r => r.StandaardCategorie)
-                .WithMany(nameof(Categorie.Rekeningen))
+                .WithMany()
                 .HasForeignKey(nameof(Rekening.StandaardCategorieId))
                 .OnDelete(DeleteBehavior.SetNull);
 

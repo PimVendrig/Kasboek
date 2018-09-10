@@ -10,11 +10,10 @@
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAIAAAAEA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAIAAAAEA=</HashCode>
       <FileName>Models\Categorie.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
-      <Property Name="Rekeningen" />
       <Property Name="Transacties" />
     </ShowAsCollectionAssociation>
   </Class>

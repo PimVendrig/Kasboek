@@ -13,10 +13,15 @@ namespace Kasboek.WebApp.Services
         {
         }
 
+        private IQueryable<Categorie> GetListQuery()
+        {
+            return _context.Categorieen
+                .OrderBy(c => c.Omschrijving);
+        }
+
         public async override Task<IList<Categorie>> GetListAsync()
         {
-            return await _context.Categorieen
-                .OrderBy(c => c.Omschrijving)
+            return await GetListQuery()
                 .ToListAsync();
         }
 
@@ -33,8 +38,7 @@ namespace Kasboek.WebApp.Services
 
         public async Task<IList<KeyValuePair<int, string>>> GetSelectListAsync()
         {
-            return await _context.Categorieen
-                .OrderBy(c => c.Omschrijving)
+            return await GetListQuery()
                 .Select(r => new KeyValuePair<int, string>(r.CategorieId, r.Omschrijving))
                 .ToListAsync();
         }

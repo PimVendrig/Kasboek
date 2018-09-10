@@ -1,0 +1,50 @@
+﻿@model IEnumerable<Kasboek.WebApp.Models.Transactie>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Datum)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Bedrag)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VanRekening)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NaarRekening)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Omschrijving)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Categorie)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Datum)
+                </td>
+                <td class="currency">
+                    @Html.DisplayFor(modelItem => item.Bedrag)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.VanRekening.Naam)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NaarRekening.Naam)
+                </td>
+                <td>
+                    <a asp-controller="Transacties" asp-action="Details" asp-route-id="@item.TransactieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Categorie.Omschrijving)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

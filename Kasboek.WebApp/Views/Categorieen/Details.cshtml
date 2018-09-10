@@ -28,3 +28,10 @@
     <a asp-action="Delete" asp-route-id="@Model.CategorieId">Verwijderen</a> |
     <a asp-action="Index">Terug naar categorieën</a>
 </div>
+<hr />
+
+<h3>Rekeningen met standaard categorie</h3>
+@await Html.PartialAsync("../Rekeningen/_Rekeningen", (IList<Rekening>)ViewBag.RekeningenMetStandaardCategorie)
+
+<h3>Transacties</h3>
+@await Html.PartialAsync("../Transacties/_Transacties", (IList<Transactie>)ViewBag.Transacties)

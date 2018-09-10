@@ -11,11 +11,13 @@ namespace Kasboek.WebApp.Controllers
     {
         private readonly IRekeningenService _rekeningenService;
         private readonly ICategorieenService _categorieenService;
+        private readonly ITransactiesService _transactiesService;
 
-        public RekeningenController(IRekeningenService rekeningenService, ICategorieenService categorieenService)
+        public RekeningenController(IRekeningenService rekeningenService, ICategorieenService categorieenService, ITransactiesService transactiesService)
         {
             _rekeningenService = rekeningenService;
             _categorieenService = categorieenService;
+            _transactiesService = transactiesService;
         }
 
         // GET: Rekeningen
@@ -37,7 +39,9 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            await SetSaldoAsync(rekening);
+            await Task.WhenAll(
+                SetSaldoAsync(rekening),
+                SetTransactiesAsync(rekening));
 
             return View(rekening);
         }
@@ -171,6 +175,11 @@ namespace Kasboek.WebApp.Controllers
         private async Task SetSaldoAsync(Rekening rekening)
         {
             ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
+        }
+
+        private async Task SetTransactiesAsync(Rekening rekening)
+        {
+            ViewBag.Transacties = await _transactiesService.GetListByRekeningAsync(rekening);
         }
 
         private async Task PerformExtraValidationsAsync(Rekening rekening)

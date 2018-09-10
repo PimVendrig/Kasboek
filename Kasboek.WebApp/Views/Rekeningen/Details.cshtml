@@ -49,3 +49,7 @@
     <a asp-action="Delete" asp-route-id="@Model.RekeningId">Verwijderen</a> |
     <a asp-action="Index">Terug naar rekeningen</a>
 </div>
+<hr />
+
+<h3>Transacties</h3>
+@await Html.PartialAsync("../Transacties/_Transacties", (IList<Transactie>)ViewBag.Transacties)

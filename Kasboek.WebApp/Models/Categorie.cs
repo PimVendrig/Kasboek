@@ -13,8 +13,6 @@ namespace Kasboek.WebApp.Models
         [StringLength(100)]
         public string Omschrijving { get; set; }
 
-        public List<Rekening> Rekeningen { get; set; }
-
         public List<Transactie> Transacties { get; set; }
 
     }

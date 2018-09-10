@@ -9,39 +9,4 @@
 <p>
     <a asp-action="Create">Rekening maken</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Naam)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Rekeningnummer)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsEigenRekening)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StandaardCategorie)
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                <a asp-action="Details" asp-route-id="@item.RekeningId">@Html.DisplayFor(modelItem => item.Naam)</a>
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rekeningnummer)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsEigenRekening)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StandaardCategorie.Omschrijving)
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+@await Html.PartialAsync("_Rekeningen", Model)

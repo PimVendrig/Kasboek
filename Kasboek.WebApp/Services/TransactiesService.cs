@@ -16,14 +16,19 @@ namespace Kasboek.WebApp.Services
             _rekeningenService = rekeningenService;
         }
 
-        public async override Task<IList<Transactie>> GetListAsync()
+        private IQueryable<Transactie> GetListQuery()
         {
-            return await _context.Transacties
+            return _context.Transacties
                 .Include(t => t.NaarRekening)
                 .Include(t => t.VanRekening)
                 .Include(t => t.Categorie)
                 .OrderByDescending(t => t.Datum)
-                .ThenByDescending(t => t.TransactieId)
+                .ThenByDescending(t => t.TransactieId);
+        }
+
+        public async override Task<IList<Transactie>> GetListAsync()
+        {
+            return await GetListQuery()
                 .ToListAsync();
         }
 
@@ -70,6 +75,20 @@ namespace Kasboek.WebApp.Services
             {
                 transactie.CategorieId = naarRekening.StandaardCategorieId;
             }
+        }
+
+        public async Task<IList<Transactie>> GetListByRekeningAsync(Rekening rekening)
+        {
+            return await GetListQuery()
+                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .ToListAsync();
+        }
+
+        public async Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie)
+        {
+            return await GetListQuery()
+                .Where(t => t.Categorie == categorie)
+                .ToListAsync();
         }
     }
 }
