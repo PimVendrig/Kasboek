@@ -1,4 +1,5 @@
-﻿using Kasboek.WebApp.Data;
+﻿using AutoMapper;
+using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -24,6 +25,7 @@ namespace Kasboek.WebApp
         {
             services.AddDbContext<KasboekDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("KasboekDatabase")));
 
+            services.AddAutoMapper();
             services.AddMvc();
 
             services.AddScoped<IInstellingenService, InstellingenService>();

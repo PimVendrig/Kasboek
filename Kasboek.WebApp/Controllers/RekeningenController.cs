@@ -1,20 +1,26 @@
-﻿using Kasboek.WebApp.Models;
+﻿using AutoMapper;
+using Kasboek.WebApp.Models;
+using Kasboek.WebApp.Models.RekeningenViewModels;
 using Kasboek.WebApp.Services;
 using Kasboek.WebApp.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class RekeningenController : Controller
     {
+        private readonly IMapper _mapper;
         private readonly IRekeningenService _rekeningenService;
         private readonly ICategorieenService _categorieenService;
         private readonly ITransactiesService _transactiesService;
 
-        public RekeningenController(IRekeningenService rekeningenService, ICategorieenService categorieenService, ITransactiesService transactiesService)
+        public RekeningenController(IMapper mapper, IRekeningenService rekeningenService, ICategorieenService categorieenService, ITransactiesService transactiesService)
         {
+            _mapper = mapper;
             _rekeningenService = rekeningenService;
             _categorieenService = categorieenService;
             _transactiesService = transactiesService;
@@ -23,7 +29,7 @@ namespace Kasboek.WebApp.Controllers
         // GET: Rekeningen
         public async Task<IActionResult> Index()
         {
-            return View(await _rekeningenService.GetListAsync());
+            return View(_mapper.Map<IList<RekeningViewModel>>(await _rekeningenService.GetListAsync()));
         }
 
         // GET: Rekeningen/Details/5
@@ -49,7 +55,7 @@ namespace Kasboek.WebApp.Controllers
         // GET: Rekeningen/Create
         public async Task<IActionResult> Create()
         {
-            await SetSelectListsAsync(null);
+            await SetSelectListsAsync((Rekening)null);
             return View();
         }
 
@@ -167,6 +173,117 @@ namespace Kasboek.WebApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: Rekeningen/Merge
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Merge(IList<RekeningViewModel> rekeningViewModels)
+        {
+            var rekeningIds = rekeningViewModels.Where(r => r.Selected).Select(r => r.RekeningId).ToList();
+            if (rekeningIds.Count < 2)
+            {
+                //Kan niet mergen met minder dat 2 rekeningen
+                return RedirectToAction(nameof(Index));
+            }
+            var rekeningen = await _rekeningenService.GetRawListByIdsAsync(rekeningIds);
+            if (rekeningen.Count != rekeningIds.Count)
+            {
+                //Niet alle aangegeven rekeningen konden gevonden worden
+                return NotFound();
+            }
+
+            var categorieIds = rekeningen.Where(r => r.StandaardCategorieId.HasValue).Select(r => r.StandaardCategorieId.Value).Distinct().ToList();
+
+            var mergeViewModel = new MergeViewModel
+            {
+                RekeningIds = rekeningIds,
+                Naam = string.Join(", ", rekeningen.Select(r => r.Naam)),
+                Rekeningnummer = string.Join(", ", rekeningen.Select(r => r.Rekeningnummer).Where(s => !string.IsNullOrEmpty(s))),
+                IsEigenRekening = rekeningen.Any(r => r.IsEigenRekening),//Als één van de rekeningen eigen is, is de gemergede standaard eigen
+                StandaardCategorieId = categorieIds.Count == 1 ? categorieIds.First() : (int?)null, //Als er één categorie is, deze voorvullen
+                CategorieIds = categorieIds
+            };
+
+            await Task.WhenAll(
+                SetSelectListsAsync(mergeViewModel),
+                SetSaldoAsync(mergeViewModel));
+
+            return View(mergeViewModel);
+        }
+
+        // POST: Rekeningen/CompleteMerge
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteMerge(MergeViewModel mergeViewModel)
+        {
+            await PerformExtraValidationsAsync(mergeViewModel);
+            if (ModelState.IsValid)
+            {
+                var rekeningen = await _rekeningenService.GetRawListByIdsAsync(mergeViewModel.RekeningIds);
+                if (rekeningen.Count != mergeViewModel.RekeningIds.Count)
+                {
+                    //Niet alle aangegeven rekeningen konden gevonden worden
+                    return NotFound();
+                }
+
+                //Alles naar de eerste toe zetten
+                var uiteindelijkeRekening = rekeningen.First();
+                var overigeRekeningen = rekeningen.Skip(1).ToList();
+                _mapper.Map(mergeViewModel, uiteindelijkeRekening);
+                List<Task> moveTasks = new List<Task>();
+                foreach(var overigeRekening in overigeRekeningen)
+                {
+                    Task moveTask = MoveTranssactiesAsync(uiteindelijkeRekening, overigeRekening);
+                    moveTasks.Add(moveTask);
+                    _rekeningenService.Remove(overigeRekening);
+                }
+                await Task.WhenAll(moveTasks);
+                await _rekeningenService.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Details), new { id = uiteindelijkeRekening.RekeningId });
+            }
+            await SetSelectListsAsync(mergeViewModel);
+
+            return View(nameof(Merge), mergeViewModel);
+        }
+
+        private async Task MoveTranssactiesAsync(Rekening uiteindelijkeRekening, Rekening overigeRekening)
+        {
+            var transacties = await _transactiesService.GetListByRekeningAsync(overigeRekening);
+            foreach (var transactie in transacties)
+            {
+                if (transactie.VanRekening == uiteindelijkeRekening || transactie.NaarRekening == uiteindelijkeRekening)
+                {
+                    //Dit wordt een boeking naar zichzelf.
+                    _transactiesService.Remove(transactie);
+                }
+                else if (transactie.VanRekening == overigeRekening)
+                {
+                    transactie.VanRekening = uiteindelijkeRekening;
+                }
+                else if (transactie.NaarRekening == overigeRekening)
+                {
+                    transactie.NaarRekening = uiteindelijkeRekening;
+                }
+            }
+        }
+
+        private async Task SetSelectListsAsync(MergeViewModel mergeViewModel)
+        {
+            ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListForIdsAsync(mergeViewModel.CategorieIds), mergeViewModel.StandaardCategorieId);
+        }
+
+        private async Task SetSaldoAsync(MergeViewModel mergeViewModel)
+        {
+            List<Task<decimal>> saldoTasks = new List<Task<decimal>>();
+            foreach(var rekeningId in mergeViewModel.RekeningIds)
+            {
+                var saldoTask = _rekeningenService.GetSaldoAsync(new Rekening { RekeningId = rekeningId });
+                saldoTasks.Add(saldoTask);
+            }
+            var saldos = await Task.WhenAll(saldoTasks);
+            mergeViewModel.Saldo = saldos.Sum();
+        }
+
         private async Task SetSelectListsAsync(Rekening rekening)
         {
             ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening?.StandaardCategorieId);
@@ -185,19 +302,26 @@ namespace Kasboek.WebApp.Controllers
         private async Task PerformExtraValidationsAsync(Rekening rekening)
         {
             await Task.WhenAll(
-                ValidateNaamInUseAsync(rekening),
-                ValidateRekeningnummerInUseAsync(rekening));
+                ValidateNaamInUseAsync(rekening.Naam, new List<int> { rekening.RekeningId }),
+                ValidateRekeningnummerInUseAsync(rekening.Rekeningnummer, new List<int> { rekening.RekeningId }));
         }
 
-        private async Task ValidateNaamInUseAsync(Rekening rekening)
+        private async Task PerformExtraValidationsAsync(MergeViewModel mergeViewModel)
         {
-            if (await _rekeningenService.IsNaamInUseAsync(rekening))
+            await Task.WhenAll(
+                ValidateNaamInUseAsync(mergeViewModel.Naam, mergeViewModel.RekeningIds),
+                ValidateRekeningnummerInUseAsync(mergeViewModel.Rekeningnummer, mergeViewModel.RekeningIds));
+        }
+
+        private async Task ValidateNaamInUseAsync(string naam, IList<int> ids)
+        {
+            if (await _rekeningenService.IsNaamInUseAsync(naam, ids))
                 ModelState.AddModelError(nameof(Rekening.Naam), "Deze naam is al in gebruik.");
         }
 
-        private async Task ValidateRekeningnummerInUseAsync(Rekening rekening)
+        private async Task ValidateRekeningnummerInUseAsync(string rekeningnummer, IList<int> ids)
         {
-            if (await _rekeningenService.IsRekeningnummerInUseAsync(rekening))
+            if (await _rekeningenService.IsRekeningnummerInUseAsync(rekeningnummer, ids))
                 ModelState.AddModelError(nameof(Rekening.Rekeningnummer), "Dit rekeningnummer is al in gebruik.");
         }
     }

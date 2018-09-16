@@ -1,0 +1,62 @@
+﻿@using Kasboek.WebApp.Models.RekeningenViewModels
+@model MergeViewModel
+
+@{
+    ViewData["Title"] = "Rekeningen samenvoegen";
+}
+
+<h2>Rekeningen samenvoegen</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CompleteMerge">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @for (var i = 0; i < Model.RekeningIds.Count; i++)
+            {
+                <input type="hidden" asp-for="RekeningIds[i]" />
+            }
+            @for (var i = 0; i < Model.CategorieIds.Count; i++)
+            {
+                <input type="hidden" asp-for="CategorieIds[i]" />
+            }
+            <div class="form-group">
+                <label asp-for="Naam" class="control-label"></label>
+                <input asp-for="Naam" class="form-control" />
+                <span asp-validation-for="Naam" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Rekeningnummer" class="control-label"></label>
+                <input asp-for="Rekeningnummer" class="form-control" />
+                <span asp-validation-for="Rekeningnummer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="IsEigenRekening" /> @Html.DisplayNameFor(model => model.IsEigenRekening)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="StandaardCategorieId" class="control-label"></label>
+                <select asp-for="StandaardCategorieId" class="form-control" asp-items="ViewBag.StandaardCategorieId">
+                    <option value="">- Selecteer een categorie -</option>
+                </select>
+                <span asp-validation-for="StandaardCategorieId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Saldo</label>
+                @string.Format("{0:C}", Model.Saldo)
+                <input type="hidden" asp-for="Saldo" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Opslaan" class="btn btn-default" /> |
+                <a asp-action="Index">Terug naar rekeningen</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

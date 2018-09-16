@@ -1,4 +1,5 @@
-﻿@model Kasboek.WebApp.Models.Categorie
+﻿@using Kasboek.WebApp.Models.RekeningenViewModels
+@model Categorie
 
 @{
     ViewData["Title"] = "Categorie details";
@@ -31,7 +32,7 @@
 <hr />
 
 <h3>Rekeningen met standaard categorie</h3>
-@await Html.PartialAsync("../Rekeningen/_Rekeningen", (IList<Rekening>)ViewBag.RekeningenMetStandaardCategorie)
+@await Html.PartialAsync("../Rekeningen/_Rekeningen", (IList<RekeningViewModel>)ViewBag.RekeningenMetStandaardCategorie)
 
 <h3>Transacties</h3>
 @await Html.PartialAsync("../Transacties/_Transacties", (IList<Transactie>)ViewBag.Transacties)

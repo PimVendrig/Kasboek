@@ -1,19 +1,24 @@
-﻿using Kasboek.WebApp.Models;
+﻿using AutoMapper;
+using Kasboek.WebApp.Models;
+using Kasboek.WebApp.Models.RekeningenViewModels;
 using Kasboek.WebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Kasboek.WebApp.Controllers
 {
     public class CategorieenController : Controller
     {
+        private readonly IMapper _mapper;
         private readonly ICategorieenService _categorieenService;
         private readonly IRekeningenService _rekeningenService;
         private readonly ITransactiesService _transactiesService;
 
-        public CategorieenController(ICategorieenService categorieenService, IRekeningenService rekeningenService, ITransactiesService transactiesService)
+        public CategorieenController(IMapper mapper, ICategorieenService categorieenService, IRekeningenService rekeningenService, ITransactiesService transactiesService)
         {
+            _mapper = mapper;
             _categorieenService = categorieenService;
             _rekeningenService = rekeningenService;
             _transactiesService = transactiesService;
@@ -159,7 +164,7 @@ namespace Kasboek.WebApp.Controllers
 
         private async Task SetRekeningenMetStandaardCategorieAsync(Categorie categorie)
         {
-            ViewBag.RekeningenMetStandaardCategorie = await _rekeningenService.GetListByStandaardCategorieAsync(categorie);
+            ViewBag.RekeningenMetStandaardCategorie = _mapper.Map<IList<RekeningViewModel>>(await _rekeningenService.GetListByStandaardCategorieAsync(categorie));
         }
 
         private async Task SetTransactiesAsync(Categorie categorie)

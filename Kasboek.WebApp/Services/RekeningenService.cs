@@ -14,12 +14,17 @@ namespace Kasboek.WebApp.Services
         {
         }
 
-        private IQueryable<Rekening> GetListQuery()
+        private IQueryable<Rekening> GetRawListQuery()
         {
             return _context.Rekeningen
-                .Include(r => r.StandaardCategorie)
                 .OrderByDescending(r => r.IsEigenRekening)
                 .ThenBy(r => r.Naam);
+        }
+
+        private IQueryable<Rekening> GetListQuery()
+        {
+            return GetRawListQuery()
+                .Include(r => r.StandaardCategorie);
         }
 
         public async override Task<IList<Rekening>> GetListAsync()
@@ -68,30 +73,37 @@ namespace Kasboek.WebApp.Services
                 .AnyAsync();
         }
 
-        public async Task<bool> IsNaamInUseAsync(Rekening rekening)
+        public async Task<bool> IsNaamInUseAsync(string naam, IList<int> excludeIds)
         {
-            if (string.IsNullOrWhiteSpace(rekening.Naam)) return false;
+            if (string.IsNullOrWhiteSpace(naam)) return false;
 
             return await _context.Rekeningen
                 .AnyAsync(r =>
-                    r.RekeningId != rekening.RekeningId
-                    && r.Naam == rekening.Naam);
+                    !excludeIds.Contains(r.RekeningId)
+                    && r.Naam == naam);
         }
 
-        public async Task<bool> IsRekeningnummerInUseAsync(Rekening rekening)
+        public async Task<bool> IsRekeningnummerInUseAsync(string rekeningnummer, IList<int> excludeIds)
         {
-            if (string.IsNullOrWhiteSpace(rekening.Rekeningnummer)) return false;
+            if (string.IsNullOrWhiteSpace(rekeningnummer)) return false;
 
             return await _context.Rekeningen
                 .AnyAsync(r =>
-                    r.RekeningId != rekening.RekeningId
-                    && r.Rekeningnummer == rekening.Rekeningnummer);
+                    !excludeIds.Contains(r.RekeningId)
+                    && r.Rekeningnummer == rekeningnummer);
         }
 
         public async Task<IList<Rekening>> GetListByStandaardCategorieAsync(Categorie categorie)
         {
             return await GetListQuery()
                 .Where(r => r.StandaardCategorie == categorie)
+                .ToListAsync();
+        }
+
+        public async Task<IList<Rekening>> GetRawListByIdsAsync(IList<int> ids)
+        {
+            return await GetRawListQuery()
+                .Where(r => ids.Contains(r.RekeningId))
                 .ToListAsync();
         }
     }

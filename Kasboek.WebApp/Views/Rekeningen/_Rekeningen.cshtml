@@ -1,32 +1,45 @@
-﻿@model IEnumerable<Kasboek.WebApp.Models.Rekening>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Naam)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Rekeningnummer)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StandaardCategorie)
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+﻿@using Kasboek.WebApp.Models.RekeningenViewModels
+@model IList<RekeningViewModel>
+<form method="post">
+    <table class="table">
+        <thead>
             <tr>
-                <td class="@(item.IsEigenRekening ? "eigen-rekening" : "")">
-                    <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@item.RekeningId">@Html.DisplayFor(modelItem => item.Naam)</a>
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Rekeningnummer)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.StandaardCategorie.Omschrijving)
-                </td>
+                <th>
+                    Selecteer
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Naam)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Rekeningnummer)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().StandaardCategorieOmschrijving)
+                </th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Html.CheckBoxFor(modelItem => @Model[i].Selected)
+                        @Html.HiddenFor(modelItem => @Model[i].RekeningId)
+                    </td>
+                    <td class="@(Model[i].IsEigenRekening ? "eigen-rekening" : "")">
+                        <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model[i].RekeningId">@Html.DisplayFor(modelItem => Model[i].Naam)</a>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model[i].Rekeningnummer)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => Model[i].StandaardCategorieOmschrijving)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="form-group">
+        <input type="submit" asp-controller="Rekeningen" asp-action="Merge" value="Samenvoegen" class="btn btn-default" />
+    </div>
+</form>
