@@ -1,4 +1,4 @@
-﻿using Kasboek.WebApp.Models;
+﻿using Kasboek.WebApp.Models.SharedViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 

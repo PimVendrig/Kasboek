@@ -1,4 +1,4 @@
-namespace Kasboek.WebApp.Models
+namespace Kasboek.WebApp.Models.SharedViewModels
 {
     public class ErrorViewModel
     {
