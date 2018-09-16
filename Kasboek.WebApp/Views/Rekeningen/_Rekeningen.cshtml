@@ -5,7 +5,12 @@
         <thead>
             <tr>
                 <th>
-                    Selecteer
+                    <div class="checkbox-inline">
+                        <label>
+                            <input type="checkbox" class="select-all" />
+                            Selecteer
+                        </label>
+                    </div>
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.First().Naam)

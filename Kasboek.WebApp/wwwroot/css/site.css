@@ -17,3 +17,7 @@
 .eigen-rekening {
     font-weight: bold;
 }
+
+table.table th label {
+    margin-bottom: 0;
+}
