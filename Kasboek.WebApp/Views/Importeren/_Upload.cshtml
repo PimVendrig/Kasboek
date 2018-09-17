@@ -1,22 +1,15 @@
 ﻿@using Kasboek.WebApp.Models.ImporterenViewModels
-@model RekeningenViewModel
-
-@{
-    ViewData["Title"] = "Rekeningen importeren";
-}
-
-<h2>Rekeningen importeren</h2>
-<hr />
+@model UploadViewModel
 
 <div class="row">
     <div class="col-md-12">
-        <form asp-action="Rekeningen" enctype="multipart/form-data">
+        <form asp-action="@Model.Action" enctype="multipart/form-data">
             <div class="form-group">
-                <label asp-for="UploadRekeningen" class="control-label"></label>
-                <input asp-for="UploadRekeningen" type="file" class="form-control" />
+                <label asp-for="Bestand" class="control-label"></label>
+                <input asp-for="Bestand" type="file" class="form-control" />
             </div>
             <div asp-validation-summary="All" class="text-danger"></div>
-            @if (Model?.ShowResultMessage == true)
+            @if (Model.ShowResultMessage == true)
             {
                 <div class="form-group">
                     <label asp-for="ResultMessage" class="control-label"></label>
@@ -30,7 +23,3 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

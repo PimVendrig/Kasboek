@@ -28,57 +28,66 @@ namespace Kasboek.WebApp.Controllers
             return View();
         }
 
-        // GET: Importeren/Rekeningen
-        public IActionResult Rekeningen()
+        // GET: Importeren/RekeningenOudeApplicatie
+        public IActionResult RekeningenOudeApplicatie()
         {
-            return View();
+            return View(new UploadViewModel { Action = nameof(RekeningenOudeApplicatie) });
         }
 
-        // POST: Importeren/Rekeningen
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Rekeningen(RekeningenViewModel rekeningenViewModel)
+        private async Task<List<List<string>>> TryGetImportRowsAsync(UploadViewModel uploadViewModel, char separator, int amountOfValues)
         {
             if (!ModelState.IsValid)
             {
-                return View(rekeningenViewModel);
+                return null;
             }
-            var fileContent = await FileHelpers.ProcessFormFile(rekeningenViewModel.UploadRekeningen, ModelState);
+            var fileContent = await FileHelpers.ProcessFormFile(uploadViewModel.Bestand, ModelState);
 
             if (!ModelState.IsValid)
             {
-                return View(rekeningenViewModel);
+                return null;
             }
 
-            var csvReader = new CsvReader(fileContent, ';', 4);
+            var csvReader = new CsvReader(fileContent, separator, amountOfValues);
             var errors = csvReader.Validate();
             if (errors.Any())
             {
                 foreach (var error in errors)
                 {
-                    ModelState.AddModelError(nameof(RekeningenViewModel.UploadRekeningen), error);
+                    ModelState.AddModelError(nameof(UploadViewModel.Bestand), error);
                 }
-                return View(rekeningenViewModel);
+                return null;
             }
+            return csvReader.ReadAll();
+        }
 
-            var importRows = csvReader.ReadAll();
-            var messages = await ImportRekeningenAsync(importRows);
+        // POST: Importeren/RekeningenOudeApplicatie
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RekeningenOudeApplicatie(UploadViewModel uploadViewModel)
+        {
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, ';', 4);
+            if (importRows == null)
+            {
+                //Invalid uploadViewModel
+                return View(uploadViewModel);
+            }
+            var messages = await ImportRekeningenOudeApplicatieAsync(importRows);
             if (messages.Any())
             {
                 foreach (var message in messages)
                 {
-                    ModelState.AddModelError(nameof(RekeningenViewModel.UploadRekeningen), message);
+                    ModelState.AddModelError(nameof(UploadViewModel.Bestand), message);
                 }
-                rekeningenViewModel.ResultMessage = $"Niet alle {importRows.Count} rekeningen zijn succesvol geïmporteerd, zie bovenstaande meldingen.";
+                uploadViewModel.ResultMessage = $"Niet alle {importRows.Count} rekeningen zijn succesvol geïmporteerd, zie bovenstaande meldingen.";
             }
             else
             {
-                rekeningenViewModel.ResultMessage = $"Alle {importRows.Count} rekeningen zijn succesvol geïmporteerd.";
+                uploadViewModel.ResultMessage = $"Alle {importRows.Count} rekeningen zijn succesvol geïmporteerd.";
             }
-            return View(rekeningenViewModel);
+            return View(uploadViewModel);
         }
 
-        private async Task<List<string>> ImportRekeningenAsync(List<List<string>> importRows)
+        private async Task<List<string>> ImportRekeningenOudeApplicatieAsync(List<List<string>> importRows)
         {
             var messages = new List<string>();
 
