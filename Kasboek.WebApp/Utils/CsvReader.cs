@@ -14,16 +14,18 @@ namespace Kasboek.WebApp.Utils
     public class CsvReader
     {
 
-        protected string Content { get; set; }
-        protected char Separator { get; set; }
+        protected string Content { get; }
+        protected char Separator { get; }
+        protected int AmountOfValues { get; }
         protected bool Parsed { get; set; }
         protected List<List<string>> Result { get; set; }
         protected List<string> ValidationErrors { get; set; }
 
-        public CsvReader(string content, char separator)
+        public CsvReader(string content, char separator, int amountOfValues)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Separator = separator;
+            AmountOfValues = amountOfValues;
         }
 
         public List<string> Validate()
@@ -48,8 +50,6 @@ namespace Kasboek.WebApp.Utils
             ValidationErrors = new List<string>();
 
             var rows = Content.Split(Environment.NewLine);
-            bool firstRow = true;
-            int valueCount = 0;
 
             for (var i = 0; i < rows.Length; i++)
             {
@@ -60,15 +60,9 @@ namespace Kasboek.WebApp.Utils
                 }
 
                 var values = row.Split(Separator);
-                if (firstRow)
+                if (values.Length != AmountOfValues)
                 {
-                    valueCount = values.Length;
-                    firstRow = false;
-                }
-
-                if (values.Length != valueCount)
-                {
-                    ValidationErrors.Add($"Regel {i + 1} heeft {values.Length} waarden in plaats van {valueCount} zoals in de eerste regel is bepaald.");
+                    ValidationErrors.Add($"Regel {i + 1} heeft {values.Length} waarden in plaats van {AmountOfValues} zoals is verwacht.");
                     continue;
                 }
                 Result.Add(new List<string>(values));

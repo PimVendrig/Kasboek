@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -20,14 +20,13 @@ namespace Kasboek.WebApp.Utils
 
             // Use Path.GetFileName to obtain the file name, which will
             // strip any path information passed as part of the
-            // FileName property. HtmlEncode the result in case it must 
-            // be returned in an error message.
-            var fileName = WebUtility.HtmlEncode(Path.GetFileName(formFile.FileName));
+            // FileName property.
+            var fileName = Path.GetFileName(formFile.FileName);
 
-            if (!csvContentTypes.Contains(formFile.ContentType.ToLower()))
+            if (!csvContentTypes.Any(csvContentType => csvContentType.Equals(formFile.ContentType, StringComparison.InvariantCultureIgnoreCase)))
             {
                 modelState.AddModelError(formFile.Name, $"The file ({fileName}) must be a text file.");
-                return string.Empty;
+                return null;
             }
 
             // Check the file length and don't bother attempting to
@@ -80,7 +79,7 @@ namespace Kasboek.WebApp.Utils
                 }
             }
 
-            return string.Empty;
+            return null;
         }
     }
 }

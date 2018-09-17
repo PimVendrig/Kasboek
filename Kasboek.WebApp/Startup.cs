@@ -26,7 +26,7 @@ namespace Kasboek.WebApp
             services.AddDbContext<KasboekDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("KasboekDatabase")));
 
             services.AddAutoMapper();
-            services.AddMvc();
+            services.AddMvc(options => options.MaxModelValidationErrors = 2000);
 
             services.AddScoped<IInstellingenService, InstellingenService>();
             services.AddScoped<ICategorieenService, CategorieenService>();
