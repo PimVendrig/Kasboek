@@ -32,13 +32,16 @@
                         @Html.HiddenFor(modelItem => @Model[i].RekeningId)
                     </td>
                     <td class="@(Model[i].IsEigenRekening ? "eigen-rekening" : "")">
-                        <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model[i].RekeningId">@Html.DisplayFor(modelItem => Model[i].Naam)</a>
+                        @*Ivm issue https://github.com/aspnet/Mvc/issues/6796 tijdelijk geen DisplayFor gebruiken *@
+                        <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@Model[i].RekeningId">@*@Html.DisplayFor(modelItem => Model[i].Naam)*@@Model[i].Naam</a>
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => Model[i].Rekeningnummer)
+                        @*@Html.DisplayFor(modelItem => Model[i].Rekeningnummer)*@
+                        @Model[i].Rekeningnummer
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => Model[i].StandaardCategorieOmschrijving)
+                        @*@Html.DisplayFor(modelItem => Model[i].StandaardCategorieOmschrijving)*@
+                        @Model[i].StandaardCategorieOmschrijving
                     </td>
                 </tr>
             }

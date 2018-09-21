@@ -27,20 +27,26 @@
         {
         <tr>
             <td class="date">
-                @Html.DisplayFor(modelItem => item.Datum)
+                @*Ivm issue https://github.com/aspnet/Mvc/issues/6796 tijdelijk geen DisplayFor gebruiken *@
+                @*@Html.DisplayFor(modelItem => item.Datum)*@
+                @item.Datum.ToString("d")
             </td>
             <td class="currency">
-                @Html.DisplayFor(modelItem => item.Bedrag)
+                @*@Html.DisplayFor(modelItem => item.Bedrag)*@
+                @item.Bedrag.ToString("C")
             </td>
             <td class="@(item.VanRekening.IsEigenRekening ? "eigen-rekening" : "")">
-                @Html.DisplayFor(modelItem => item.VanRekening.Naam)
+                @*@Html.DisplayFor(modelItem => item.VanRekening.Naam)*@
+                @item.VanRekening.Naam
             </td>
-            <td class="@(item.NaarRekening.IsEigenRekening ? "eigen-rekening" : "")">
-                @Html.DisplayFor(modelItem => item.NaarRekening.Naam)
+            <td class="@(item.NaarRekening.IsEigenRekening ? " eigen-rekening" : "" )">
+                @*@Html.DisplayFor(modelItem => item.NaarRekening.Naam)*@
+                @item.NaarRekening.Naam
             </td>
-            <td class="multiline"><a asp-controller="Transacties" asp-action="Details" asp-route-id="@item.TransactieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a></td>
+            <td class="multiline"><a asp-controller="Transacties" asp-action="Details" asp-route-id="@item.TransactieId">@*@Html.DisplayFor(modelItem => item.Omschrijving)*@@(item.Omschrijving ?? "- Geen omschrijving -")</a></td>
             <td>
-                @Html.DisplayFor(modelItem => item.Categorie.Omschrijving)
+                @*@Html.DisplayFor(modelItem => item.Categorie.Omschrijving)*@
+                @item.Categorie?.Omschrijving
             </td>
         </tr>
         }
