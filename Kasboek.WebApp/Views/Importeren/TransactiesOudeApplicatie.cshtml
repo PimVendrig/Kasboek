@@ -1,0 +1,15 @@
+﻿@using Kasboek.WebApp.Models.ImporterenViewModels
+@model UploadViewModel
+
+@{
+    ViewData["Title"] = "Transacties oude applicatie importeren";
+}
+
+<h2>Transacties oude applicatie importeren</h2>
+<hr />
+
+@await Html.PartialAsync("_Upload", Model)
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

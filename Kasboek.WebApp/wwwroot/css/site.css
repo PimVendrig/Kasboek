@@ -10,12 +10,24 @@
     padding-right: 15px;
 }
 
-.currency {
+
+.currency,
+.date {
     text-align: right;
+    white-space: nowrap;
 }
 
 .eigen-rekening {
     font-weight: bold;
+}
+
+.multiline {
+    white-space: pre;
+}
+
+dd.multiline::before,
+dd.multiline::after {
+    display:none;
 }
 
 table.table th label {
