@@ -16,6 +16,7 @@ namespace Kasboek.WebApp.Models
 
         [Range(0.0, 999999999999999.99)]//Max van decimal in db is 9999999999999999.99, maar vanwege afronding naar 1E16 iets lager gezet.
         [DataType(DataType.Currency)]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Bedrag { get; set; }
 
         [DisplayFormat(NullDisplayText = "- Geen omschrijving -")]

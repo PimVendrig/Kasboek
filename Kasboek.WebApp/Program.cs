@@ -11,7 +11,7 @@ namespace Kasboek.WebApp
     {
         public static void Main(string[] args)
         {
-            var host = BuildWebHost(args);
+            var host = CreateWebHostBuilder(args).Build();
             InitializeDb(host);
             host.Run();
         }
@@ -38,9 +38,8 @@ namespace Kasboek.WebApp
             }
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+                .UseStartup<Startup>();
     }
 }
