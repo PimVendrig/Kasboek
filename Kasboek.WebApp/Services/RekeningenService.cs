@@ -48,7 +48,7 @@ namespace Kasboek.WebApp.Services
 
         public async Task<IList<KeyValuePair<int, string>>> GetSelectListAsync()
         {
-            return await GetListQuery()
+            return await GetRawListQuery()
                 .Select(r => new KeyValuePair<int, string>(r.RekeningId, r.Naam))
                 .ToListAsync();
         }
