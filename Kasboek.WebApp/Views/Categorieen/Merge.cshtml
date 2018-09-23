@@ -1,0 +1,39 @@
+﻿@using Kasboek.WebApp.Models.CategorieenViewModels
+@model MergeViewModel
+
+@{
+    ViewData["Title"] = "Categorieën samenvoegen";
+}
+
+<h2>Categorieën samenvoegen</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CompleteMerge">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @for (var i = 0; i < Model.CategorieIds.Count; i++)
+            {
+                <input type="hidden" asp-for="CategorieIds[i]" />
+            }
+            <div class="form-group">
+                <label asp-for="Omschrijving" class="control-label"></label>
+                <input asp-for="Omschrijving" class="form-control" />
+                <span asp-validation-for="Omschrijving" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Saldo" class="control-label"></label>
+                @Html.DisplayFor(modelItem => Model.Saldo)
+                <input type="hidden" asp-for="Saldo" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Opslaan" class="btn btn-default" /> |
+                <a asp-action="Index">Terug naar categorieën</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

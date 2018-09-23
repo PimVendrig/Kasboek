@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Kasboek.WebApp.Models;
+using Kasboek.WebApp.Models.CategorieenViewModels;
 using Kasboek.WebApp.Models.RekeningenViewModels;
 using Kasboek.WebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using MergeViewModel = Kasboek.WebApp.Models.CategorieenViewModels.MergeViewModel;
 
 namespace Kasboek.WebApp.Controllers
 {
@@ -27,7 +30,7 @@ namespace Kasboek.WebApp.Controllers
         // GET: Categorieen
         public async Task<IActionResult> Index()
         {
-            return View(await _categorieenService.GetListAsync());
+            return View(_mapper.Map<IList<CategorieViewModel>>(await _categorieenService.GetListAsync()));
         }
 
         // GET: Categorieen/Details/5
@@ -157,6 +160,106 @@ namespace Kasboek.WebApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: Categorieen/Merge
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Merge(IList<CategorieViewModel> categorieViewModels)
+        {
+            var categorieIds = categorieViewModels.Where(c => c.Selected).Select(c => c.CategorieId).ToList();
+            if (categorieIds.Count < 2)
+            {
+                //Kan niet mergen met minder dat 2 categorieën
+                return RedirectToAction(nameof(Index));
+            }
+            var categorieen = await _categorieenService.GetRawListByIdsAsync(categorieIds);
+            if (categorieen.Count != categorieIds.Count)
+            {
+                //Niet alle aangegeven categorieën konden gevonden worden
+                return NotFound();
+            }
+
+            var mergeViewModel = new MergeViewModel
+            {
+                CategorieIds = categorieIds,
+                Omschrijving = string.Join(", ", categorieen.Select(c => c.Omschrijving))
+            };
+
+            await SetSaldoAsync(mergeViewModel);
+
+            return View(mergeViewModel);
+        }
+
+        // POST: Categorieen/CompleteMerge
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteMerge(MergeViewModel mergeViewModel)
+        {
+            await PerformExtraValidationsAsync(mergeViewModel);
+            if (ModelState.IsValid)
+            {
+                var categorieen = await _categorieenService.GetRawListByIdsAsync(mergeViewModel.CategorieIds);
+                if (categorieen.Count != mergeViewModel.CategorieIds.Count)
+                {
+                    //Niet alle aangegeven categorieën konden gevonden worden
+                    return NotFound();
+                }
+
+                //Alles naar de eerste toe zetten
+                var uiteindelijkeCategorie = categorieen.First();
+                var overigeCategorieen = categorieen.Skip(1).ToList();
+                _mapper.Map(mergeViewModel, uiteindelijkeCategorie);
+                List<Task> moveTasks = new List<Task>();
+                foreach (var overigeCategorie in overigeCategorieen)
+                {
+                    moveTasks.Add(MoveTransactiesAsync(uiteindelijkeCategorie, overigeCategorie));
+                    moveTasks.Add(MoveRekeningenAsync(uiteindelijkeCategorie, overigeCategorie));
+                }
+                await Task.WhenAll(moveTasks);
+                await _categorieenService.SaveChangesAsync();
+
+                //Splits verwijderen en verplaatsen in twee SaveChanges
+                //Transacties nullificeren de Categorie ipv verplaatsen indien voor de Remove niet eerst een SaveChanges wordt gedaan.
+                foreach (var overigeCategorie in overigeCategorieen)
+                {
+                    _categorieenService.Remove(overigeCategorie);
+                }
+                await _categorieenService.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Details), new { id = uiteindelijkeCategorie.CategorieId });
+            }
+            return View(nameof(Merge), mergeViewModel);
+        }
+
+        private async Task MoveTransactiesAsync(Categorie uiteindelijkeCategorie, Categorie overigeCategorie)
+        {
+            var transacties = await _transactiesService.GetListByCategorieAsync(overigeCategorie);
+            foreach (var transactie in transacties)
+            {
+                transactie.Categorie = uiteindelijkeCategorie;
+            }
+        }
+
+        private async Task MoveRekeningenAsync(Categorie uiteindelijkeCategorie, Categorie overigeCategorie)
+        {
+            var rekeningen = await _rekeningenService.GetListByStandaardCategorieAsync(overigeCategorie);
+            foreach (var rekening in rekeningen)
+            {
+                rekening.StandaardCategorie = uiteindelijkeCategorie;
+            }
+        }
+
+        private async Task SetSaldoAsync(MergeViewModel mergeViewModel)
+        {
+            List<Task<decimal>> saldoTasks = new List<Task<decimal>>();
+            foreach (var categorieId in mergeViewModel.CategorieIds)
+            {
+                var saldoTask = _categorieenService.GetSaldoAsync(new Categorie { CategorieId = categorieId });
+                saldoTasks.Add(saldoTask);
+            }
+            var saldos = await Task.WhenAll(saldoTasks);
+            mergeViewModel.Saldo = saldos.Sum();
+        }
+
         private async Task SetSaldoAsync(Categorie categorie)
         {
             ViewData["Saldo"] = await _categorieenService.GetSaldoAsync(categorie);
@@ -172,12 +275,21 @@ namespace Kasboek.WebApp.Controllers
             ViewBag.Transacties = await _transactiesService.GetListByCategorieAsync(categorie);
         }
 
+        private async Task PerformExtraValidationsAsync(MergeViewModel mergeViewModel)
+        {
+            await ValidateOmschrijvingInUseAsync(mergeViewModel.Omschrijving, mergeViewModel.CategorieIds);
+        }
+
         private async Task PerformExtraValidationsAsync(Categorie categorie)
         {
-            if (await _categorieenService.IsOmschrijvingInUseAsync(categorie))
-            {
-                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
-            }
+            await ValidateOmschrijvingInUseAsync(categorie.Omschrijving, new List<int> { categorie.CategorieId });
         }
+
+        private async Task ValidateOmschrijvingInUseAsync(string omschrijving, IList<int> ids)
+        {
+            if (await _categorieenService.IsOmschrijvingInUseAsync(omschrijving, ids))
+                ModelState.AddModelError(nameof(Categorie.Omschrijving), "Deze omschrijving is al in gebruik.");
+        }
+
     }
 }

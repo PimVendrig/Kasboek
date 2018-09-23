@@ -13,10 +13,15 @@ namespace Kasboek.WebApp.Services
         {
         }
 
-        private IQueryable<Categorie> GetListQuery()
+        private IQueryable<Categorie> GetRawListQuery()
         {
             return _context.Categorieen
                 .OrderBy(c => c.Omschrijving);
+        }
+
+        private IQueryable<Categorie> GetListQuery()
+        {
+            return GetRawListQuery();
         }
 
         public async override Task<IList<Categorie>> GetListAsync()
@@ -67,14 +72,21 @@ namespace Kasboek.WebApp.Services
                     : 0);
         }
 
-        public async Task<bool> IsOmschrijvingInUseAsync(Categorie categorie)
+        public async Task<bool> IsOmschrijvingInUseAsync(string omschrijving, IList<int> excludeIds)
         {
-            if (string.IsNullOrWhiteSpace(categorie.Omschrijving)) return false;
+            if (string.IsNullOrWhiteSpace(omschrijving)) return false;
 
             return await _context.Categorieen
                 .AnyAsync(c =>
-                    c.CategorieId != categorie.CategorieId
-                    && c.Omschrijving == categorie.Omschrijving);
+                    !excludeIds.Contains(c.CategorieId)
+                    && c.Omschrijving == omschrijving);
+        }
+
+        public async Task<IList<Categorie>> GetRawListByIdsAsync(IList<int> ids)
+        {
+            return await GetRawListQuery()
+                .Where(c => ids.Contains(c.CategorieId))
+                .ToListAsync();
         }
     }
 }

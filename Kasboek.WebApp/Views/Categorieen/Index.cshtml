@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Kasboek.WebApp.Models.Categorie>
+﻿@using Kasboek.WebApp.Models.CategorieenViewModels
+@model IList<CategorieViewModel>
 
 @{
     ViewData["Title"] = "Categorieën";
@@ -9,21 +10,39 @@
 <p>
     <a asp-action="Create">Categorie maken</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
                 <th>
-                    @Html.DisplayNameFor(model => model.Omschrijving)
+                    <div class="checkbox-inline">
+                        <label>
+                            <input type="checkbox" class="select-all" />
+                            Selecteer
+                        </label>
+                    </div>
                 </th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                <a asp-action="Details" asp-route-id="@item.CategorieId">@Html.DisplayFor(modelItem => item.Omschrijving)</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Omschrijving)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Html.CheckBoxFor(modelItem => @Model[i].Selected)
+                        @Html.HiddenFor(modelItem => @Model[i].CategorieId)
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@Model[i].CategorieId">@Html.DisplayFor(modelItem => Model[i].Omschrijving)</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="form-group">
+        <input type="submit" asp-action="Merge" value="Samenvoegen" class="btn btn-default" />
+    </div>
+</form>

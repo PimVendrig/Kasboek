@@ -10,6 +10,7 @@ namespace Kasboek.WebApp.Services
         Task<IList<KeyValuePair<int, string>>> GetSelectListForIdsAsync(IList<int> ids);
         Task<bool> ExistsAsync(int id);
         Task<decimal> GetSaldoAsync(Categorie categorie);
-        Task<bool> IsOmschrijvingInUseAsync(Categorie categorie);
+        Task<bool> IsOmschrijvingInUseAsync(string omschrijving, IList<int> excludeIds);
+        Task<IList<Categorie>> GetRawListByIdsAsync(IList<int> ids);
     }
 }
