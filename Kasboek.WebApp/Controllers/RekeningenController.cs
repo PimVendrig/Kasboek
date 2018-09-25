@@ -229,13 +229,14 @@ namespace Kasboek.WebApp.Controllers
                 var uiteindelijkeRekening = rekeningen.First();
                 var overigeRekeningen = rekeningen.Skip(1).ToList();
                 _mapper.Map(mergeViewModel, uiteindelijkeRekening);
-                List<Task> moveTasks = new List<Task>();
                 foreach(var overigeRekening in overigeRekeningen)
                 {
-                    moveTasks.Add(MoveTranssactiesAsync(uiteindelijkeRekening, overigeRekening));
+                    //Transactie verplaatsen meteen awaiten. 
+                    //Anders zou een transactie met een boeking naar zichzelf mogelijk kunnen worden
+                    //Vb: RekA, RekB, RekC allen naar RekA toe. Transactie tussen RekB en RekC zou asynchroon de boeking-naar-zichzelf-check kunnen missen
+                    await MoveTranssactiesAsync(uiteindelijkeRekening, overigeRekening);
                     _rekeningenService.Remove(overigeRekening);
                 }
-                await Task.WhenAll(moveTasks);
                 await _rekeningenService.SaveChangesAsync();
 
                 return RedirectToAction(nameof(Details), new { id = uiteindelijkeRekening.RekeningId });

@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace Kasboek.WebApp.Models
 {
 
+    [DebuggerDisplay("{Omschrijving}")]
     public class Categorie
     {
 
