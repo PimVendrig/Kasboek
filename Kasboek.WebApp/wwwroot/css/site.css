@@ -25,9 +25,13 @@
     white-space: pre;
 }
 
+textarea.form-control.omschrijving {
+    height: 150px;
+}
+
 dd.multiline::before,
 dd.multiline::after {
-    display:none;
+    display: none;
 }
 
 table.table th label {
