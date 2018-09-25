@@ -233,15 +233,9 @@ namespace Kasboek.WebApp.Controllers
                 foreach(var overigeRekening in overigeRekeningen)
                 {
                     moveTasks.Add(MoveTranssactiesAsync(uiteindelijkeRekening, overigeRekening));
-                }
-                await Task.WhenAll(moveTasks);
-                await _rekeningenService.SaveChangesAsync();
-
-                //Splits verwijderen en verplaatsen in twee SaveChanges
-                foreach (var overigeRekening in overigeRekeningen)
-                {
                     _rekeningenService.Remove(overigeRekening);
                 }
+                await Task.WhenAll(moveTasks);
                 await _rekeningenService.SaveChangesAsync();
 
                 return RedirectToAction(nameof(Details), new { id = uiteindelijkeRekening.RekeningId });

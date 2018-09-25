@@ -219,6 +219,8 @@ namespace Kasboek.WebApp.Controllers
 
                 //Splits verwijderen en verplaatsen in twee SaveChanges
                 //Transacties nullificeren de Categorie ipv verplaatsen indien voor de Remove niet eerst een SaveChanges wordt gedaan.
+                //Rekeningen hebben dit issue niet, alleen Transacties. Nog uitzoeken wat hier mee aan de hand is.
+                //Dit heeft nu als bijeffect dat de uiteindelijke omschijving niet een van de te verwijderen mag hebben (unique constraint exception)
                 foreach (var overigeCategorie in overigeCategorieen)
                 {
                     _categorieenService.Remove(overigeCategorie);
