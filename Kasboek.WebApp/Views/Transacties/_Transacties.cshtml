@@ -29,7 +29,7 @@
             <td class="date">
                 @*Ivm issue https://github.com/aspnet/Mvc/issues/6796 tijdelijk geen DisplayFor gebruiken *@
                 @*@Html.DisplayFor(modelItem => item.Datum)*@
-                @item.Datum.ToString("d")
+                @item.Datum.ToString("ddd d/M/yyyy")
             </td>
             <td class="currency">
                 @*@Html.DisplayFor(modelItem => item.Bedrag)*@

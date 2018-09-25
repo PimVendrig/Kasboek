@@ -12,6 +12,7 @@ namespace Kasboek.WebApp.Models
 
         [DataType(DataType.Date)]
         [Column(TypeName = "date")]
+        [DisplayFormat(DataFormatString = "{0:ddd d/M/yyyy}")]
         public DateTime Datum { get; set; }
 
         [Range(0.0, 999999999999999.99)]//Max van decimal in db is 9999999999999999.99, maar vanwege afronding naar 1E16 iets lager gezet.
