@@ -61,8 +61,14 @@ namespace Kasboek.WebApp.Services
 
         public async Task<decimal> GetSaldoAsync(Rekening rekening)
         {
+            return await GetSaldoOnDatumAsync(rekening, null);
+        }
+
+        public async Task<decimal> GetSaldoOnDatumAsync(Rekening rekening, DateTime? datum)
+        {
             return await _context.Transacties
                 .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .Where(t => !datum.HasValue || t.Datum <= datum.Value)
                 .SumAsync(t => t.NaarRekening == rekening ? t.Bedrag : (-1M * t.Bedrag));
         }
 
@@ -104,6 +110,13 @@ namespace Kasboek.WebApp.Services
         {
             return await GetRawListQuery()
                 .Where(r => ids.Contains(r.RekeningId))
+                .ToListAsync();
+        }
+
+        public async Task<IList<Rekening>> GetRawEigenRekeningListAsync()
+        {
+            return await GetRawListQuery()
+                .Where(r => r.IsEigenRekening)
                 .ToListAsync();
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -90,5 +91,18 @@ namespace Kasboek.WebApp.Services
                 .Where(t => t.Categorie == categorie)
                 .ToListAsync();
         }
+
+        public async Task<DateTime?> GetFirstTransactieDatumAsync()
+        {
+            return await _context.Transacties
+                .MinAsync(t => (DateTime?)t.Datum);
+        }
+
+        public async Task<DateTime?> GetLastTransactieDatumAsync()
+        {
+            return await _context.Transacties
+                .MaxAsync(t => (DateTime?)t.Datum);
+        }
+
     }
 }

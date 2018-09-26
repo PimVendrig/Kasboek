@@ -1,0 +1,8 @@
+﻿@using Kasboek.WebApp.Models.VerslagViewModels
+@model VerslagViewModel
+@{
+    ViewData["Title"] = "Verslag";
+}
+
+<h3>Balans</h3>
+@await Html.PartialAsync("_Balans", Model.Balans)

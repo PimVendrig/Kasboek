@@ -1,4 +1,5 @@
 ﻿using Kasboek.WebApp.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,5 +11,7 @@ namespace Kasboek.WebApp.Services
         Task DetermineCategorieAsync(Transactie transactie);
         Task<IList<Transactie>> GetListByRekeningAsync(Rekening rekening);
         Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie);
+        Task<DateTime?> GetFirstTransactieDatumAsync();
+        Task<DateTime?> GetLastTransactieDatumAsync();
     }
 }
