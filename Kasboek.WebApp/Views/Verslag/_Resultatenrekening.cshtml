@@ -1,13 +1,14 @@
 ﻿@using Kasboek.WebApp.Models.VerslagViewModels
-@model BalansViewModel
+@model ResultatenrekeningViewModel
 <table class="table table-striped table-hover">
     <thead>
         <tr>
             <th></th>
-            @foreach (var datum in Model.Datums)
+            @foreach (var periode in Model.Periodes)
             {
-                <th class="date">
-                    @datum.ToString("d")
+                <th>
+                    <div class="date">Van @periode.Item1.ToString("d")</div>
+                    <div class="date">tot @periode.Item2.ToString("d")</div>
                 </th>
             }
         </tr>
@@ -30,7 +31,7 @@
         {
             <tr>
                 <td>
-                    <a asp-controller="Rekeningen" asp-action="Details" asp-route-id="@verslagRegel.Id">@verslagRegel.Tekst</a>
+                    <a asp-controller="Categorieen" asp-action="Details" asp-route-id="@verslagRegel.Id">@verslagRegel.Tekst</a>
                 </td>
                 @foreach (var bedrag in verslagRegel.Bedragen)
                 {

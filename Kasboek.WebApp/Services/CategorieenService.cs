@@ -1,6 +1,7 @@
 ﻿using Kasboek.WebApp.Data;
 using Kasboek.WebApp.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -64,9 +65,16 @@ namespace Kasboek.WebApp.Services
 
         public async Task<decimal> GetSaldoAsync(Categorie categorie)
         {
+            return await GetSaldoForPeriodeAsync(categorie, null, null);
+        }
+
+        public async Task<decimal> GetSaldoForPeriodeAsync(Categorie categorie, DateTime? startDatum, DateTime? eindDatum)
+        {
             return await _context.Transacties
                 .Where(t => t.Categorie == categorie)
-                .SumAsync(t => 
+                .Where(t => !startDatum.HasValue || t.Datum >= startDatum.Value)
+                .Where(t => !eindDatum.HasValue || t.Datum <= eindDatum.Value)
+                .SumAsync(t =>
                     t.NaarRekening.IsEigenRekening && !t.VanRekening.IsEigenRekening ? t.Bedrag
                     : t.VanRekening.IsEigenRekening && !t.NaarRekening.IsEigenRekening ? (-1M * t.Bedrag)
                     : 0);
@@ -86,6 +94,12 @@ namespace Kasboek.WebApp.Services
         {
             return await GetRawListQuery()
                 .Where(c => ids.Contains(c.CategorieId))
+                .ToListAsync();
+        }
+
+        public async Task<IList<Categorie>> GetRawListForResultatenrekeningAsync()
+        {
+            return await GetRawListQuery()
                 .ToListAsync();
         }
     }

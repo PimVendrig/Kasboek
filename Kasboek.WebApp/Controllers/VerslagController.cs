@@ -12,11 +12,13 @@ namespace Kasboek.WebApp.Controllers
     {
         private readonly ITransactiesService _transactiesService;
         private readonly IRekeningenService _rekeningenService;
+        private readonly ICategorieenService _categorieenService;
 
-        public VerslagController(ITransactiesService transactiesService, IRekeningenService rekeningenService)
+        public VerslagController(ITransactiesService transactiesService, IRekeningenService rekeningenService, ICategorieenService categorieenService)
         {
             _transactiesService = transactiesService;
             _rekeningenService = rekeningenService;
+            _categorieenService = categorieenService;
         }
 
         // GET: Verslag
@@ -24,7 +26,8 @@ namespace Kasboek.WebApp.Controllers
         {
             var verslag = new VerslagViewModel
             {
-                Balans = await GetBalansAsync()
+                Balans = await GetBalansAsync(),
+                Resultatenrekening = await GetResultatenrekeningAsync()
             };
             return View(verslag);
         }
@@ -35,8 +38,8 @@ namespace Kasboek.WebApp.Controllers
             {
                 Datums = await GetBalansDatumsAsync()
             };
-            balans.RekeningRegels = await GetBalansRekeningRegelsAsync(balans.Datums);
-            balans.TotaalRegel = GetBalansTotaalRegel(balans.Datums, balans.RekeningRegels);
+            balans.VerslagRegels = await GetBalansRegelsAsync(balans.Datums);
+            balans.TotaalRegel = GetTotaalRegel(balans.Datums.Count, balans.VerslagRegels);
             return balans;
         }
 
@@ -75,41 +78,104 @@ namespace Kasboek.WebApp.Controllers
             return datums;
         }
 
-        private async Task<List<BalansRegel>> GetBalansRekeningRegelsAsync(List<DateTime> datums)
+        private async Task<List<VerslagRegelViewModel>> GetBalansRegelsAsync(List<DateTime> datums)
         {
-            var rekeningRegels = new List<BalansRegel>();
+            var regels = new List<VerslagRegelViewModel>();
             var rekeningen = await _rekeningenService.GetRawEigenRekeningListAsync();
             
             foreach(var rekening in rekeningen)
             {
-                var rekeningRegel = new BalansRegel
+                var regel = new VerslagRegelViewModel
                 {
-                    RekeningId = rekening.RekeningId,
-                    RekeningNaam = rekening.Naam,
-                    Saldos = new List<decimal>()
+                    Id = rekening.RekeningId,
+                    Tekst = rekening.Naam,
+                    Bedragen = new List<decimal>()
                 };
 
-                rekeningRegels.Add(rekeningRegel);
+                regels.Add(regel);
 
                 foreach(var datum in datums)
                 {
-                    rekeningRegel.Saldos.Add(await _rekeningenService.GetSaldoOnDatumAsync(rekening, datum));
+                    regel.Bedragen.Add(await _rekeningenService.GetSaldoOnDatumAsync(rekening, datum));
                 }
             }
 
-            return rekeningRegels;
+            return regels;
         }
 
-        private List<decimal> GetBalansTotaalRegel(List<DateTime> datums, List<BalansRegel> rekeningRegels)
+        private List<decimal> GetTotaalRegel(int numberOfBedragen, List<VerslagRegelViewModel> verslagRegels)
         {
             var totaalRegel = new List<decimal>();
 
-            for (var i = 0; i < datums.Count; i++)
+            for (var i = 0; i < numberOfBedragen; i++)
             {
-                totaalRegel.Add(rekeningRegels.Select(r => r.Saldos[i]).Sum());
+                totaalRegel.Add(verslagRegels.Select(r => r.Bedragen[i]).Sum());
             }
 
             return totaalRegel;
+        }
+
+        private async Task<ResultatenrekeningViewModel> GetResultatenrekeningAsync()
+        {
+            var resultatenrekening = new ResultatenrekeningViewModel
+            {
+                Periodes = await GetResultatenrekeningPeriodesAsync()
+            };
+            resultatenrekening.VerslagRegels = await GetResultatenrekeningRegelsAsync(resultatenrekening.Periodes);
+            resultatenrekening.TotaalRegel = GetTotaalRegel(resultatenrekening.Periodes.Count, resultatenrekening.VerslagRegels);
+            return resultatenrekening;
+        }
+
+        private async Task<List<Tuple<DateTime, DateTime>>> GetResultatenrekeningPeriodesAsync()
+        {
+            //Resultatenrekening toont situatie voor ieder jaar van 1 januari tot en met 31 december.
+            //Te beginnen bij de datum van de eerste transactie, en te eindigen bij de datum van de laatste transactie
+            var datums = await GetBalansDatumsAsync();
+
+            var periodes = new List<Tuple<DateTime, DateTime>>();
+            if (datums.Count < 2)
+            {
+                //Geen reeks te maken met minder dan 2 datums
+                return periodes;
+            }
+
+            //De startdatum is een dag na de vorige einddatum, om een periode van 1 januari t/m 31 december te krijgen
+            var startDatum = datums.First().AddDays(1);
+
+            //Begin met het overall totaal
+            periodes.Add(new Tuple<DateTime, DateTime>(startDatum, datums.Last()));
+
+            foreach (var eindDatum in datums.Skip(1))
+            {
+                periodes.Add(new Tuple<DateTime, DateTime>(startDatum, eindDatum));
+                startDatum = eindDatum.AddDays(1);
+            }
+            return periodes;
+        }
+
+        private async Task<List<VerslagRegelViewModel>> GetResultatenrekeningRegelsAsync(List<Tuple<DateTime, DateTime>> periodes)
+        {
+            var regels = new List<VerslagRegelViewModel>();
+            var categorieen = await _categorieenService.GetRawListForResultatenrekeningAsync();
+
+            foreach (var categorie in categorieen)
+            {
+                var regel = new VerslagRegelViewModel
+                {
+                    Id = categorie.CategorieId,
+                    Tekst = categorie.Omschrijving,
+                    Bedragen = new List<decimal>()
+                };
+
+                regels.Add(regel);
+
+                foreach (var periode in periodes)
+                {
+                    regel.Bedragen.Add(await _categorieenService.GetSaldoForPeriodeAsync(categorie, periode.Item1, periode.Item2));
+                }
+            }
+
+            return regels;
         }
     }
 }
