@@ -14,5 +14,7 @@ namespace Kasboek.WebApp.Models
         [ForeignKey("StandaardVanRekeningId")]
         public Rekening StandaardVanRekening { get; set; }
 
+        [Display(Name = "Transactie meteen bewerken")]
+        public bool TransactieMeteenBewerken { get; set; }
     }
 }

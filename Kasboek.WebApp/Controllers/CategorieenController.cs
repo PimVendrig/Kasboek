@@ -18,13 +18,15 @@ namespace Kasboek.WebApp.Controllers
         private readonly ICategorieenService _categorieenService;
         private readonly IRekeningenService _rekeningenService;
         private readonly ITransactiesService _transactiesService;
+        private readonly IInstellingenService _instellingenService;
 
-        public CategorieenController(IMapper mapper, ICategorieenService categorieenService, IRekeningenService rekeningenService, ITransactiesService transactiesService)
+        public CategorieenController(IMapper mapper, ICategorieenService categorieenService, IRekeningenService rekeningenService, ITransactiesService transactiesService, IInstellingenService instellingenService)
         {
             _mapper = mapper;
             _categorieenService = categorieenService;
             _rekeningenService = rekeningenService;
             _transactiesService = transactiesService;
+            _instellingenService = instellingenService;
         }
 
         // GET: Categorieen
@@ -49,7 +51,8 @@ namespace Kasboek.WebApp.Controllers
             await Task.WhenAll(
                 SetSaldoAsync(categorie),
                 SetRekeningenMetStandaardCategorieAsync(categorie),
-                SetTransactiesAsync(categorie));
+                SetTransactiesAsync(categorie),
+                SetTransactiesAnchorAction());
 
             return View(categorie);
         }
@@ -275,6 +278,12 @@ namespace Kasboek.WebApp.Controllers
         private async Task SetTransactiesAsync(Categorie categorie)
         {
             ViewBag.Transacties = await _transactiesService.GetListByCategorieAsync(categorie);
+        }
+
+        private async Task SetTransactiesAnchorAction()
+        {
+            var instellingen = await _instellingenService.GetSingleAsync();
+            ViewBag.TransactiesAnchorAction = instellingen.TransactieMeteenBewerken ? "Edit" : "Details";
         }
 
         private async Task PerformExtraValidationsAsync(MergeViewModel mergeViewModel)

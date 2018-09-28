@@ -34,7 +34,7 @@ namespace Kasboek.WebApp.Controllers
         // POST: Instellingen/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("InstellingenId,StandaardVanRekeningId")] Instellingen instellingen)
+        public async Task<IActionResult> Edit([Bind("InstellingenId,StandaardVanRekeningId,TransactieMeteenBewerken")] Instellingen instellingen)
         {
             var instellingenId = await _instellingenService.GetIdAsync();
 

@@ -26,6 +26,8 @@ namespace Kasboek.WebApp.Controllers
         // GET: Transacties
         public async Task<IActionResult> Index()
         {
+            var instellingen = await _instellingenService.GetSingleAsync();
+            ViewBag.TransactiesAnchorAction = instellingen.TransactieMeteenBewerken ? "Edit" : "Details";
             return View(await _transactiesService.GetListAsync());
         }
 

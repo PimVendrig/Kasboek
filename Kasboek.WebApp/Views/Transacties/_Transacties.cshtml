@@ -1,4 +1,7 @@
 ﻿@model IEnumerable<Kasboek.WebApp.Models.Transactie>
+@{ 
+    string anchorAction = ViewBag.TransactiesAnchorAction ?? "Details";
+}
 <table class="table table-striped table-hover">
     <thead>
         <tr>
@@ -39,11 +42,11 @@
                 @*@Html.DisplayFor(modelItem => item.VanRekening.Naam)*@
                 @item.VanRekening.Naam
             </td>
-            <td class="@(item.NaarRekening.IsEigenRekening ? " eigen-rekening" : "" )">
+            <td class="@(item.NaarRekening.IsEigenRekening ? " eigen-rekening" : "")">
                 @*@Html.DisplayFor(modelItem => item.NaarRekening.Naam)*@
                 @item.NaarRekening.Naam
             </td>
-            <td class="multiline"><a asp-controller="Transacties" asp-action="Details" asp-route-id="@item.TransactieId">@*@Html.DisplayFor(modelItem => item.Omschrijving)*@@(item.Omschrijving ?? "- Geen omschrijving -")</a></td>
+            <td class="multiline"><a asp-controller="Transacties" asp-action="@anchorAction" asp-route-id="@item.TransactieId">@*@Html.DisplayFor(modelItem => item.Omschrijving)*@@(item.Omschrijving ?? "- Geen omschrijving -")</a></td>
             <td>
                 @*@Html.DisplayFor(modelItem => item.Categorie.Omschrijving)*@
                 @item.Categorie?.Omschrijving

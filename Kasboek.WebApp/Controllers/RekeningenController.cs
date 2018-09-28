@@ -17,13 +17,15 @@ namespace Kasboek.WebApp.Controllers
         private readonly IRekeningenService _rekeningenService;
         private readonly ICategorieenService _categorieenService;
         private readonly ITransactiesService _transactiesService;
+        private readonly IInstellingenService _instellingenService;
 
-        public RekeningenController(IMapper mapper, IRekeningenService rekeningenService, ICategorieenService categorieenService, ITransactiesService transactiesService)
+        public RekeningenController(IMapper mapper, IRekeningenService rekeningenService, ICategorieenService categorieenService, ITransactiesService transactiesService, IInstellingenService instellingenService)
         {
             _mapper = mapper;
             _rekeningenService = rekeningenService;
             _categorieenService = categorieenService;
             _transactiesService = transactiesService;
+            _instellingenService = instellingenService;
         }
 
         // GET: Rekeningen
@@ -47,7 +49,8 @@ namespace Kasboek.WebApp.Controllers
             }
             await Task.WhenAll(
                 SetSaldoAsync(rekening),
-                SetTransactiesAsync(rekening));
+                SetTransactiesAsync(rekening),
+                SetTransactiesAnchorAction());
 
             return View(rekening);
         }
@@ -297,6 +300,12 @@ namespace Kasboek.WebApp.Controllers
         private async Task SetTransactiesAsync(Rekening rekening)
         {
             ViewBag.Transacties = await _transactiesService.GetListByRekeningAsync(rekening);
+        }
+
+        private async Task SetTransactiesAnchorAction()
+        {
+            var instellingen = await _instellingenService.GetSingleAsync();
+            ViewBag.TransactiesAnchorAction = instellingen.TransactieMeteenBewerken ? "Edit" : "Details";
         }
 
         private async Task PerformExtraValidationsAsync(Rekening rekening)
