@@ -123,6 +123,7 @@ namespace Kasboek.WebApp.Controllers
             };
             resultatenrekening.VerslagRegels = await GetResultatenrekeningRegelsAsync(resultatenrekening.Periodes);
             resultatenrekening.TotaalRegel = GetTotaalRegel(resultatenrekening.Periodes.Count, resultatenrekening.VerslagRegels);
+            resultatenrekening.TotaalPerMaandRegel = GetTotaalPerMaandRegel(resultatenrekening.Periodes, resultatenrekening.TotaalRegel);
             return resultatenrekening;
         }
 
@@ -164,18 +165,48 @@ namespace Kasboek.WebApp.Controllers
                 {
                     Id = categorie.CategorieId,
                     Tekst = categorie.Omschrijving,
-                    Bedragen = new List<decimal>()
+                    Bedragen = new List<decimal>(),
+                    BedragenPerMaand = new List<decimal>()
                 };
-
-                regels.Add(regel);
 
                 foreach (var periode in periodes)
                 {
-                    regel.Bedragen.Add(await _categorieenService.GetSaldoForPeriodeAsync(categorie, periode.Item1, periode.Item2));
+                    var bedrag = await _categorieenService.GetSaldoForPeriodeAsync(categorie, periode.Item1, periode.Item2);
+                    regel.Bedragen.Add(bedrag);
+
+                    regel.BedragenPerMaand.Add(bedrag / GetAantalMaanden(periode));
                 }
+
+                if (regel.Bedragen.Any(b => b != 0M))
+                {
+                    //Laat regels waarin nergens een bedrag staat er uit
+                    regels.Add(regel);
+                }
+
             }
 
             return regels;
+        }
+
+        private int GetAantalMaanden(Tuple<DateTime, DateTime> periode)
+        {
+            //Periodes lopen van 1-1 t/m 31-12. Dit geeft een verschil van 11 maanden, dus één optellen.
+            //Ook in het geval van 1-1 t/m 15-1, willen we dit als 1 maand zien.
+            return 1 + ((periode.Item2.Year - periode.Item1.Year) * 12) + periode.Item2.Month - periode.Item1.Month;
+        }
+
+        private List<decimal> GetTotaalPerMaandRegel(List<Tuple<DateTime, DateTime>> periodes, List<decimal> totaalRegel)
+        {
+            var totaalPerMaandRegel = new List<decimal>();
+
+            for (var i = 0; i < periodes.Count; i++)
+            {
+                var totaalBedrag = totaalRegel[i];
+                var periode = periodes[i];
+                totaalPerMaandRegel.Add(totaalBedrag / GetAantalMaanden(periode));
+            }
+
+            return totaalPerMaandRegel;
         }
     }
 }

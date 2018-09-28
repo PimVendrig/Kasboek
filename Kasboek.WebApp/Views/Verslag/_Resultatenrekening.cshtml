@@ -18,10 +18,11 @@
             <th>
                 Totaal
             </th>
-            @foreach (var bedrag in Model.TotaalRegel)
+            @for (int i = 0; i < Model.TotaalRegel.Count; i++)
             {
-                <th class="currency">
-                    @bedrag.ToString("C")
+                <th class="@(Model.TotaalRegel[i] < 0M ? "currency-negative" : "")">
+                    <div class="currency">@Model.TotaalRegel[i].ToString("C")</div>
+                    <div class="currency">@Model.TotaalPerMaandRegel[i].ToString("C")</div>
                 </th>
             }
         </tr>
@@ -33,10 +34,11 @@
                 <td>
                     <a asp-controller="Categorieen" asp-action="Details" asp-route-id="@verslagRegel.Id">@verslagRegel.Tekst</a>
                 </td>
-                @foreach (var bedrag in verslagRegel.Bedragen)
+                @for (int i = 0; i < verslagRegel.Bedragen.Count; i++)
                 {
-                    <td class="currency">
-                        @bedrag.ToString("C")
+                    <td class="@(verslagRegel.Bedragen[i] < 0M ? "currency-negative" : "")">
+                        <div class="currency">@verslagRegel.Bedragen[i].ToString("C")</div>
+                        <div class="currency">@verslagRegel.BedragenPerMaand[i].ToString("C")</div>
                     </td>
                 }
             </tr>

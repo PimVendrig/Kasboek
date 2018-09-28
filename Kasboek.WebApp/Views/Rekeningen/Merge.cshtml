@@ -43,7 +43,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Saldo" class="control-label"></label>
-                @Html.DisplayFor(modelItem => Model.Saldo)
+                <span class="@(Model.Saldo < 0M ? "currency-negative" : "")">@Html.DisplayFor(modelItem => Model.Saldo)</span>
                 <input type="hidden" asp-for="Saldo" />
             </div>
             <div class="form-group">

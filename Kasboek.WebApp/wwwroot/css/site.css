@@ -17,6 +17,10 @@
     white-space: nowrap;
 }
 
+.currency-negative {
+    color: red;
+}
+
 .eigen-rekening {
     font-weight: bold;
 }
