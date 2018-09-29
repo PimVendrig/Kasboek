@@ -15,7 +15,6 @@
                     <option value="">- Selecteer een rekening -</option>
                 </select>
                 <span asp-validation-for="StandaardVanRekeningId" class="text-danger"></span>
-                <span asp-validation-for="StandaardVanRekening" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <div class="checkbox">
@@ -23,6 +22,13 @@
                         <input asp-for="TransactieMeteenBewerken" /> @Html.DisplayNameFor(model => model.TransactieMeteenBewerken)
                     </label>
                 </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="PortemonneeRekeningId" class="control-label"></label>
+                <select asp-for="PortemonneeRekeningId" class="form-control" asp-items="ViewBag.PortemonneeRekeningId">
+                    <option value="">- Selecteer een rekening -</option>
+                </select>
+                <span asp-validation-for="PortemonneeRekeningId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Opslaan" class="btn btn-default" /> |

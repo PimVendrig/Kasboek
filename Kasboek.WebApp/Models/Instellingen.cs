@@ -16,5 +16,11 @@ namespace Kasboek.WebApp.Models
 
         [Display(Name = "Transactie meteen bewerken")]
         public bool TransactieMeteenBewerken { get; set; }
+
+        [Display(Name = "Portemonnee rekening")]
+        public int? PortemonneeRekeningId { get; set; }
+        [Display(Name = "Portemonnee rekening")]
+        [ForeignKey("PortemonneeRekeningId")]
+        public Rekening PortemonneeRekening { get; set; }
     }
 }

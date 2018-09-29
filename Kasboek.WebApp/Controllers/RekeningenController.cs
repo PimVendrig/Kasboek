@@ -156,6 +156,12 @@ namespace Kasboek.WebApp.Controllers
                 ModelState.AddModelError(string.Empty, "De rekening heeft nog transacties en kan daardoor niet verwijderd worden.");
                 ViewBag.DisableForm = true;
             }
+            var instellingen = await _instellingenService.GetSingleAsync();
+            if (rekening == instellingen.PortemonneeRekening)
+            {
+                ModelState.AddModelError(string.Empty, "De rekening is ingesteld als de portemonnee rekening en kan daardoor niet verwijderd worden.");
+                ViewBag.DisableForm = true;
+            }
             await SetSaldoAsync(rekening);
 
             return View(rekening);

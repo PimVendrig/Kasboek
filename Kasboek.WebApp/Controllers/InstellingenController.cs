@@ -34,7 +34,7 @@ namespace Kasboek.WebApp.Controllers
         // POST: Instellingen/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("InstellingenId,StandaardVanRekeningId,TransactieMeteenBewerken")] Instellingen instellingen)
+        public async Task<IActionResult> Edit([Bind("InstellingenId,StandaardVanRekeningId,TransactieMeteenBewerken,PortemonneeRekeningId")] Instellingen instellingen)
         {
             var instellingenId = await _instellingenService.GetIdAsync();
 
@@ -56,7 +56,10 @@ namespace Kasboek.WebApp.Controllers
 
         private async Task SetSelectListsAsync(Instellingen instellingen)
         {
-            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(await _rekeningenService.GetSelectListAsync(), instellingen.StandaardVanRekeningId);
+            var rekeningen = await _rekeningenService.GetSelectListAsync();
+
+            ViewData["StandaardVanRekeningId"] = SelectListUtil.GetSelectList(rekeningen, instellingen.StandaardVanRekeningId);
+            ViewData["PortemonneeRekeningId"] = SelectListUtil.GetSelectList(rekeningen, instellingen.PortemonneeRekeningId);
         }
     }
 }

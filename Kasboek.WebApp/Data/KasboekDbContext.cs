@@ -23,6 +23,14 @@ namespace Kasboek.WebApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            CustomizeTransactie(modelBuilder);
+            CustomizeRekening(modelBuilder);
+            CustomizeInstellingen(modelBuilder);
+            CustomizeCategorie(modelBuilder);
+        }
+
+        private void CustomizeTransactie(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Transactie>()
                 .HasOne(t => t.VanRekening)
                 .WithMany(nameof(Rekening.VanTransacties))
@@ -41,24 +49,17 @@ namespace Kasboek.WebApp.Data
                 .HasForeignKey(nameof(Transactie.CategorieId))
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Transactie>()
+                .HasIndex(t => t.Omschrijving);
+        }
+
+        private void CustomizeRekening(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Rekening>()
                 .HasOne(r => r.StandaardCategorie)
                 .WithMany()
                 .HasForeignKey(nameof(Rekening.StandaardCategorieId))
                 .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Instellingen>()
-                .HasOne(r => r.StandaardVanRekening)
-                .WithMany()
-                .HasForeignKey(nameof(Models.Instellingen.StandaardVanRekeningId))
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Categorie>()
-                .HasIndex(c => c.Omschrijving)
-                .IsUnique();
-
-            modelBuilder.Entity<Transactie>()
-                .HasIndex(t => t.Omschrijving);
 
             modelBuilder.Entity<Rekening>()
                 .HasIndex(c => c.Naam)
@@ -69,5 +70,26 @@ namespace Kasboek.WebApp.Data
                 .IsUnique();
         }
 
+        private void CustomizeInstellingen(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Instellingen>()
+                .HasOne(r => r.StandaardVanRekening)
+                .WithMany()//Eigenlijk 1 op 1, maar een unique constraint voor de Instellingentabel is niet nodig.
+                .HasForeignKey(nameof(Models.Instellingen.StandaardVanRekeningId))
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Instellingen>()
+                .HasOne(r => r.PortemonneeRekening)
+                .WithMany()//Eigenlijk 1 op 1, maar een unique constraint voor de Instellingentabel is niet nodig.
+                .HasForeignKey(nameof(Models.Instellingen.PortemonneeRekeningId))
+                .OnDelete(DeleteBehavior.Restrict);//Restrict in plaats van de gewenste SetNull, in verband met cascade loops 
+        }
+
+        private void CustomizeCategorie(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Categorie>()
+                .HasIndex(c => c.Omschrijving)
+                .IsUnique();
+        }
     }
 }

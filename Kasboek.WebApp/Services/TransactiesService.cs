@@ -65,13 +65,23 @@ namespace Kasboek.WebApp.Services
 
         private async Task SetStandaardCategorieAsync(Transactie transactie)
         {
-            var vanRekening = await _rekeningenService.GetRawSingleOrDefaultAsync(transactie.VanRekeningId);
+            var vanRekening = transactie.VanRekening;
+            if (vanRekening == null)
+            {
+                //Alleen VanRekeningId is weggeschreven. Haal op uit de database
+                vanRekening = await _rekeningenService.GetRawSingleOrDefaultAsync(transactie.VanRekeningId);
+            }
             if (vanRekening.StandaardCategorieId.HasValue)
             {
                 transactie.CategorieId = vanRekening.StandaardCategorieId;
                 return;
             }
-            var naarRekening = await _rekeningenService.GetRawSingleOrDefaultAsync(transactie.NaarRekeningId);
+            var naarRekening = transactie.NaarRekening;
+            if (naarRekening == null)
+            {
+                //Alleen NaarRekeningId is weggeschreven. Haal op uit de database
+                naarRekening = await _rekeningenService.GetRawSingleOrDefaultAsync(transactie.NaarRekeningId);
+            }
             if (naarRekening.StandaardCategorieId.HasValue)
             {
                 transactie.CategorieId = naarRekening.StandaardCategorieId;

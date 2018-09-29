@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Kasboek.WebApp.Models;
 using Kasboek.WebApp.Models.ImporterenViewModels;
@@ -17,12 +18,14 @@ namespace Kasboek.WebApp.Controllers
         private readonly ICategorieenService _categorieenService;
         private readonly IRekeningenService _rekeningenService;
         private readonly ITransactiesService _transactiesService;
+        private readonly IInstellingenService _instellingenService;
 
-        public ImporterenController(ICategorieenService categorieenService, IRekeningenService rekeningenService, ITransactiesService transactiesService)
+        public ImporterenController(ICategorieenService categorieenService, IRekeningenService rekeningenService, ITransactiesService transactiesService, IInstellingenService instellingenService)
         {
             _categorieenService = categorieenService;
             _rekeningenService = rekeningenService;
             _transactiesService = transactiesService;
+            _instellingenService = instellingenService;
         }
         
         // GET: Importeren
@@ -123,6 +126,11 @@ namespace Kasboek.WebApp.Controllers
 
             await FillNewDataLinks(uploadViewModel);
 
+            var messages = await ImportTransactiesRabobankCsv2013Async(importRows);
+            foreach (var message in messages)
+            {
+                ModelState.AddModelError(nameof(UploadViewModel.Bestand), message);
+            }
             uploadViewModel.ResultMessage = $"Geen van de {importRows.Count} zijn geïmporteerd, omdat dit nog work in progress is.";
             
             return View(uploadViewModel);
@@ -285,7 +293,7 @@ namespace Kasboek.WebApp.Controllers
                 }
 
                 var vanRekeningImportValue = importRow[2].Trim();
-                transactie.VanRekening = FindRekening(rekeningen, vanRekeningImportValue);
+                transactie.VanRekening = FindRekeningByNaam(rekeningen, vanRekeningImportValue);
                 if (transactie.VanRekening == null)
                 {
                     //Validatie werkt op Id, die niet null kan zijn (maar 0).
@@ -298,7 +306,7 @@ namespace Kasboek.WebApp.Controllers
                 }
 
                 var naarRekeningImportValue = importRow[3].Trim();
-                transactie.NaarRekening = FindRekening(rekeningen, naarRekeningImportValue);
+                transactie.NaarRekening = FindRekeningByNaam(rekeningen, naarRekeningImportValue);
                 if (transactie.NaarRekening == null)
                 {
                     //Validatie werkt op Id, die niet null kan zijn (maar 0).
@@ -340,7 +348,164 @@ namespace Kasboek.WebApp.Controllers
                     _transactiesService.Add(transactie);
                 }
             }
-            await _rekeningenService.SaveChangesAsync();
+            await _transactiesService.SaveChangesAsync();
+
+            return messages;
+        }
+
+        private async Task<List<string>> ImportTransactiesRabobankCsv2013Async(List<List<string>> importRows)
+        {
+            var messages = new List<string>();
+
+            //Massa import, laad alle rekeningen en instellingen van te voren in.
+            var rekeningenTask = _rekeningenService.GetListAsync();
+            var instellingenTask = _instellingenService.GetSingleAsync();
+            await Task.WhenAll(rekeningenTask, instellingenTask);
+            var rekeningen = rekeningenTask.Result;
+            var instellingen = instellingenTask.Result;
+
+            var importedTransacties = new List<Transactie>();
+
+            for (var rowIndex = 0; rowIndex < importRows.Count; rowIndex++)
+            {
+                var importRow = importRows[rowIndex];
+
+                var errorMessages = new List<string>();
+                var infoMessages = new List<string>();
+
+                var eigenRekeningnummer = importRow[0].Trim();
+
+                var datumImportValue = importRow[2].Trim();
+                if (!DateTime.TryParseExact(datumImportValue, "yyyyMMdd", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime datum))
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{datumImportValue}' is geen geldige datum.");
+                }
+
+                var isBijschrijving = false;
+                var isBijschrijvingImportValue = importRow[3].Trim();
+                if (isBijschrijvingImportValue.Equals("C", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    isBijschrijving = true;
+                }
+                else if (!isBijschrijvingImportValue.Equals("D", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{isBijschrijvingImportValue}' is geen geldige waarde voor is bijschrijving.");
+                }
+
+                //Bedragen met een punt, gebruik InvariantCulture
+                var bedragImportValue = importRow[4].Trim();
+                if (!decimal.TryParse(bedragImportValue, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal bedrag))
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{bedragImportValue}' is geen geldig bedrag.");
+                }
+
+                var tegenRekeningnummer = importRow[5].Trim();
+                var tegenRekeningNaam = importRow[6].Trim();
+                var boekcode = importRow[8].Trim();
+
+                var skipOmschrijving1 = false;
+                if (boekcode == "ba" || boekcode == "bc")
+                {
+                    //Betaalautomaat, Betalen contactloos
+                    //In deze gevallen is er geen tegenrekening, en staat de naam in Omschrijving1
+                    if (tegenRekeningnummer != string.Empty || tegenRekeningNaam != string.Empty)
+                    {
+                        infoMessages.Add($"Transactie op regel {rowIndex + 1} heeft boekcode '{boekcode}' en zou daarom geen tegen rekeningnummer '{tegenRekeningnummer}' of tegen rekening naam '{tegenRekeningNaam}' moeten hebben. Deze zijn overschreven met omschrijving1.");
+                        tegenRekeningnummer = string.Empty;
+                    }
+
+                    tegenRekeningNaam = importRow[10].Trim();
+                    skipOmschrijving1 = true;
+                }
+
+                var omschrijvingSb = new StringBuilder();
+                if (!skipOmschrijving1)
+                {
+                    omschrijvingSb.AppendLine(importRow[10].Trim());
+                }
+                omschrijvingSb.AppendLine(importRow[11].Trim());
+                omschrijvingSb.AppendLine(importRow[12].Trim());
+                omschrijvingSb.AppendLine(importRow[13].Trim());
+                omschrijvingSb.AppendLine(importRow[14].Trim());
+                omschrijvingSb.AppendLine(importRow[15].Trim());
+                var omschrijving = omschrijvingSb.ToString().Trim();
+
+                var eigenRekening = FindRekeningByRekeningnummer(rekeningen, eigenRekeningnummer);
+                if (eigenRekening == null)
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, eigen rekening '{eigenRekeningnummer}' is niet gevonden.");
+                }
+
+                Rekening tegenRekening = null;
+                if (boekcode == "kh" || boekcode == "ga" || boekcode == "gb")
+                {
+                    //Kasafhandeling, Geldautomaat Euro, Geldautomaat VV
+                    tegenRekening = instellingen.PortemonneeRekening;
+                    if (tegenRekening == null)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, er is geen portemonnee ingesteld.");
+                    }
+                }
+                else
+                {
+                    (var rekening, var rekeningErrorMessages) = FindOrImportRekening(rekeningen, tegenRekeningnummer, tegenRekeningNaam);
+                    tegenRekening = rekening;
+                    foreach (var rekeningErrorMessage in rekeningErrorMessages)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {rekeningErrorMessage}");
+                    }
+                }
+
+                Transactie transactie = null;
+                if (!errorMessages.Any())
+                {
+                    //De waarden zijn succesvol geparsed. Maak de transactie
+                    transactie = new Transactie
+                    {
+                        Datum = datum,
+                        Bedrag = bedrag,
+                        VanRekening = isBijschrijving ? tegenRekening : eigenRekening,
+                        NaarRekening = isBijschrijving ? eigenRekening : tegenRekening,
+                        Omschrijving = omschrijving
+                    };
+
+                    //Validatie werkt op Id, zet voor nu expliciet (voor o.a. de Unlike validator)
+                    transactie.VanRekeningId = transactie.VanRekening.RekeningId;
+                    transactie.NaarRekeningId = transactie.NaarRekening.RekeningId;
+
+                    await _transactiesService.DetermineCategorieAsync(transactie);
+
+                    var validationResults = new List<ValidationResult>();
+                    Validator.TryValidateObject(transactie, new ValidationContext(transactie, null, null), validationResults, true);
+                    foreach (var validationResult in validationResults)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {validationResult.ErrorMessage}");
+                    }
+
+                    if (importedTransacties.Any(t =>
+                        t.Datum == transactie.Datum &&
+                        t.Bedrag == transactie.Bedrag &&
+                        t.VanRekening == transactie.VanRekening &&
+                        t.NaarRekening == transactie.NaarRekening &&
+                        t.Omschrijving == transactie.Omschrijving))
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, er is in dit bestand al een andere transactie op {transactie.Datum:ddd d/M/yyyy} met {transactie.Bedrag:C} van '{transactie.VanRekening.Naam}' naar '{transactie.NaarRekening.Naam}' met omschrijving '{transactie.Omschrijving}'.");
+                    }
+                }
+
+                if (errorMessages.Any())
+                {
+                    messages.AddRange(errorMessages);
+                }
+                else
+                {
+                    messages.AddRange(infoMessages);
+                    _transactiesService.Add(transactie);
+                    importedTransacties.Add(transactie);
+                }
+            }
+
+            //await _transactiesService.SaveChangesAsync();
 
             return messages;
         }
@@ -371,7 +536,7 @@ namespace Kasboek.WebApp.Controllers
             Validator.TryValidateObject(categorie, new ValidationContext(categorie, null, null), validationResults, true);
             foreach (var validationResult in validationResults)
             {
-                errorMessages.Add($"Categorie '{categorie.Omschrijving}' is overgeslagen, {validationResult.ErrorMessage}");
+                errorMessages.Add($"Categorie '{categorie.Omschrijving}' is ongeldig, {validationResult.ErrorMessage}");
             }
 
             if (errorMessages.Any())
@@ -386,7 +551,7 @@ namespace Kasboek.WebApp.Controllers
             }
         }
 
-        private Rekening FindRekening(IList<Rekening> rekeningen, string naam)
+        private Rekening FindRekeningByNaam(IList<Rekening> rekeningen, string naam)
         {
             if (string.IsNullOrWhiteSpace(naam))
             {
@@ -396,6 +561,62 @@ namespace Kasboek.WebApp.Controllers
 
             var rekening = rekeningen.FirstOrDefault(r => r.Naam.Equals(naam, StringComparison.InvariantCultureIgnoreCase));
             return rekening;
+        }
+
+        private Rekening FindRekeningByRekeningnummer(IList<Rekening> rekeningen, string rekeningnummer)
+        {
+            if (string.IsNullOrWhiteSpace(rekeningnummer))
+            {
+                //Geen rekening, vinden onmogelijk
+                return null;
+            }
+
+            var rekening = rekeningen.FirstOrDefault(r => 
+                r.Rekeningnummer != null
+                && r.Rekeningnummer.Equals(rekeningnummer, StringComparison.InvariantCultureIgnoreCase));
+            return rekening;
+        }
+
+        private (Rekening rekening, List<string> errorMessages) FindOrImportRekening(IList<Rekening> rekeningen, string rekeningnummer, string naam)
+        {
+            var errorMessages = new List<string>();
+
+            var rekening = FindRekeningByRekeningnummer(rekeningen, rekeningnummer);
+            if (rekening != null)
+            {
+                return (rekening, errorMessages);
+            }
+            rekening = FindRekeningByNaam(rekeningen, naam);
+            if (rekening != null)
+            {
+                return (rekening, errorMessages);
+            }
+
+            //Niet gevonden, importeren
+            rekening = new Rekening
+            {
+                Naam = naam,
+                Rekeningnummer = rekeningnummer,
+                IsEigenRekening = false
+            };
+
+            var validationResults = new List<ValidationResult>();
+            Validator.TryValidateObject(rekening, new ValidationContext(rekening, null, null), validationResults, true);
+            foreach (var validationResult in validationResults)
+            {
+                errorMessages.Add($"Rekening met rekeningnummer '{rekening.Rekeningnummer}' en naam '{rekening.Naam}' is ongeldig, {validationResult.ErrorMessage}");
+            }
+
+            if (errorMessages.Any())
+            {
+                return (null, errorMessages);
+            }
+            else
+            {
+                _rekeningenService.Add(rekening);
+                rekeningen.Add(rekening);
+                return (rekening, errorMessages);
+            }
         }
     }
 }
