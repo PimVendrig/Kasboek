@@ -6,8 +6,8 @@ namespace Kasboek.WebApp.Utils
 {
     /// <summary>
     /// Simpele CSV reader:
-    /// Geen ondersteuning voor quotes.
-    /// Geen ondersteuning daardoor voor newlines of separator als content.
+    /// Alleen ondersteuning voor alles quotes of niets quotes.
+    /// Geen ondersteuning voor newlines of separator als content.
     /// Geen ondersteuning voor minder waarden dan de eerste regel.
     /// Lege regels worden overgeslagen.
     /// </summary>
@@ -16,15 +16,17 @@ namespace Kasboek.WebApp.Utils
 
         protected string Content { get; }
         protected char Separator { get; }
+        protected char? Quote { get; }
         protected int AmountOfValues { get; }
         protected bool Parsed { get; set; }
         protected List<List<string>> Result { get; set; }
         protected List<string> ValidationErrors { get; set; }
 
-        public CsvReader(string content, char separator, int amountOfValues)
+        public CsvReader(string content, char separator, char? quote, int amountOfValues)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Separator = separator;
+            Quote = quote;
             AmountOfValues = amountOfValues;
         }
 
@@ -50,6 +52,7 @@ namespace Kasboek.WebApp.Utils
             ValidationErrors = new List<string>();
 
             var rows = Content.Split(Environment.NewLine);
+            var combinedSeparator = Quote.HasValue ? $"{Quote.Value}{Separator}{Quote.Value}" : $"{Separator}";
 
             for (var i = 0; i < rows.Length; i++)
             {
@@ -59,11 +62,34 @@ namespace Kasboek.WebApp.Utils
                     continue;
                 }
 
-                var values = row.Split(Separator);
+                var values = row.Split(combinedSeparator);
                 if (values.Length != AmountOfValues)
                 {
                     ValidationErrors.Add($"Regel {i + 1} heeft {values.Length} waarden in plaats van {AmountOfValues} zoals is verwacht.");
                     continue;
+                }
+                if (Quote.HasValue)
+                {
+                    var firstValue = values.First();
+                    if (firstValue.StartsWith(Quote.Value))
+                    {
+                        values[0] = firstValue.Substring(1);
+                    }
+                    else
+                    {
+                        ValidationErrors.Add($"Regel {i + 1} begint niet met het teken {Quote.Value}.");
+                        continue;
+                    }
+                    var lastValue = values.Last();
+                    if (lastValue.EndsWith(Quote.Value))
+                    {
+                        values[values.Length - 1] = lastValue.Substring(0, lastValue.Length - 1);
+                    }
+                    else
+                    {
+                        ValidationErrors.Add($"Regel {i + 1} eindigt niet met het teken {Quote.Value}.");
+                        continue;
+                    }
                 }
                 Result.Add(new List<string>(values));
             }

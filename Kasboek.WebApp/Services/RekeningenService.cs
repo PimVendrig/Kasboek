@@ -119,5 +119,18 @@ namespace Kasboek.WebApp.Services
                 .Where(r => r.IsEigenRekening)
                 .ToListAsync();
         }
+
+        public async Task<int?> GetLastIdAsync()
+        {
+            return await _context.Rekeningen
+                .MaxAsync(t => (int?)t.RekeningId);
+        }
+
+        public async Task<IList<Rekening>> GetListAfterIdAsync(int? id)
+        {
+            return await GetListQuery()
+                .Where(r => !id.HasValue || r.RekeningId > id.Value)
+                .ToListAsync();
+        }
     }
 }

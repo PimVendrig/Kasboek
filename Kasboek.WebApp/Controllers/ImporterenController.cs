@@ -42,12 +42,15 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RekeningenOudeApplicatie(UploadViewModel uploadViewModel)
         {
-            var importRows = await TryGetImportRowsAsync(uploadViewModel, ';', 4);
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, ';', null, 4);
             if (importRows == null)
             {
                 //Invalid uploadViewModel
                 return View(uploadViewModel);
             }
+
+            await FillNewDataLinks(uploadViewModel);
+
             var messages = await ImportRekeningenOudeApplicatieAsync(importRows);
             if (messages.Any())
             {
@@ -75,12 +78,15 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TransactiesOudeApplicatie(UploadViewModel uploadViewModel)
         {
-            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', 6);
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', null, 6);
             if (importRows == null)
             {
                 //Invalid uploadViewModel
                 return View(uploadViewModel);
             }
+
+            await FillNewDataLinks(uploadViewModel);
+
             var messages = await ImportTransactiesOudeApplicatieAsync(importRows);
             if (messages.Any())
             {
@@ -97,7 +103,42 @@ namespace Kasboek.WebApp.Controllers
             return View(uploadViewModel);
         }
 
-        private async Task<List<List<string>>> TryGetImportRowsAsync(UploadViewModel uploadViewModel, char separator, int amountOfValues)
+        // GET: Importeren/TransactiesRabobankCsv2013
+        public IActionResult TransactiesRabobankCsv2013()
+        {
+            return View(new UploadViewModel { Action = nameof(TransactiesRabobankCsv2013) });
+        }
+
+        // POST: Importeren/TransactiesRabobankCsv2013
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransactiesRabobankCsv2013(UploadViewModel uploadViewModel)
+        {
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, ',', '"', 19);
+            if (importRows == null)
+            {
+                //Invalid uploadViewModel
+                return View(uploadViewModel);
+            }
+
+            await FillNewDataLinks(uploadViewModel);
+
+            uploadViewModel.ResultMessage = $"Geen van de {importRows.Count} zijn geïmporteerd, omdat dit nog work in progress is.";
+            
+            return View(uploadViewModel);
+        }
+
+        private async Task FillNewDataLinks(UploadViewModel uploadViewModel)
+        {
+            //Haal de huidige max ids op om de nieuwe items te kunnen weergeven
+            var lastTransactieId = await _transactiesService.GetLastIdAsync() ?? 0;
+            uploadViewModel.NewTransactiesLinkParameters = new Dictionary<string, string> { { "afterId", lastTransactieId.ToString() } };
+
+            var lastRekeningId = await _rekeningenService.GetLastIdAsync() ?? 0;
+            uploadViewModel.NewRekeningenLinkParameters = new Dictionary<string, string> { { "afterId", lastRekeningId.ToString() } };
+        }
+
+        private async Task<List<List<string>>> TryGetImportRowsAsync(UploadViewModel uploadViewModel, char separator, char? quote, int amountOfValues)
         {
             if (!ModelState.IsValid)
             {
@@ -110,7 +151,7 @@ namespace Kasboek.WebApp.Controllers
                 return null;
             }
 
-            var csvReader = new CsvReader(fileContent, separator, amountOfValues);
+            var csvReader = new CsvReader(fileContent, separator, quote, amountOfValues);
             var errors = csvReader.Validate();
             if (errors.Any())
             {

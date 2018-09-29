@@ -29,9 +29,9 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Rekeningen
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? afterId)
         {
-            return View(_mapper.Map<IList<RekeningViewModel>>(await _rekeningenService.GetListAsync()));
+            return View(_mapper.Map<IList<RekeningViewModel>>(await _rekeningenService.GetListAfterIdAsync(afterId)));
         }
 
         // GET: Rekeningen/Details/5

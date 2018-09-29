@@ -16,6 +16,18 @@
                     @Html.DisplayFor(model => model.ResultMessage)
                 </div>
             }
+            @if (Model.ShowNewDataLinks)
+            {
+                <div class="form-group">
+                    <label class="control-label">Nieuwe gegevens</label>
+                    <p>
+                        <a asp-area="" asp-controller="Transacties" asp-action="Index" asp-all-route-data="@Model.NewTransactiesLinkParameters">Nieuwe transacties</a>
+                    </p>
+                    <p>
+                        <a asp-area="" asp-controller="Rekeningen" asp-action="Index" asp-all-route-data="@Model.NewRekeningenLinkParameters">Nieuwe rekeningen</a>
+                    </p>
+                </div>
+            }
             <div class="form-group">
                 <input type="submit" value="Importeren" class="btn btn-default" /> |
                 <a asp-action="Index">Terug naar importeren overzicht</a>

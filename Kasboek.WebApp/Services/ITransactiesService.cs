@@ -13,5 +13,7 @@ namespace Kasboek.WebApp.Services
         Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie);
         Task<DateTime?> GetFirstTransactieDatumAsync();
         Task<DateTime?> GetLastTransactieDatumAsync();
+        Task<int?> GetLastIdAsync();
+        Task<IList<Transactie>> GetListAfterIdAsync(int? id);
     }
 }

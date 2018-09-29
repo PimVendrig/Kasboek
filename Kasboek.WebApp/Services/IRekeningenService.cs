@@ -17,5 +17,7 @@ namespace Kasboek.WebApp.Services
         Task<IList<Rekening>> GetListByStandaardCategorieAsync(Categorie categorie);
         Task<IList<Rekening>> GetRawListByIdsAsync(IList<int> ids);
         Task<IList<Rekening>> GetRawEigenRekeningListAsync();
+        Task<int?> GetLastIdAsync();
+        Task<IList<Rekening>> GetListAfterIdAsync(int? id);
     }
 }

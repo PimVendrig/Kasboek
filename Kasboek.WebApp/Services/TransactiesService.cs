@@ -104,5 +104,18 @@ namespace Kasboek.WebApp.Services
                 .MaxAsync(t => (DateTime?)t.Datum);
         }
 
+        public async Task<int?> GetLastIdAsync()
+        {
+            return await _context.Transacties
+                .MaxAsync(t => (int?)t.TransactieId);
+        }
+
+        public async Task<IList<Transactie>> GetListAfterIdAsync(int? id)
+        {
+            return await GetListQuery()
+                .Where(t => !id.HasValue || t.TransactieId > id.Value)
+                .ToListAsync();
+        }
+
     }
 }

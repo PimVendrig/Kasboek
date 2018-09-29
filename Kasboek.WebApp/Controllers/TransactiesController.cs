@@ -24,11 +24,11 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Transacties
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? afterId)
         {
             var instellingen = await _instellingenService.GetSingleAsync();
             ViewBag.TransactiesAnchorAction = instellingen.TransactieMeteenBewerken ? "Edit" : "Details";
-            return View(await _transactiesService.GetListAsync());
+            return View(await _transactiesService.GetListAfterIdAsync(afterId));
         }
 
         // GET: Transacties/Details/5
