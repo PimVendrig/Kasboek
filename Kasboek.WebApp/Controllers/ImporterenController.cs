@@ -127,12 +127,18 @@ namespace Kasboek.WebApp.Controllers
             await FillNewDataLinks(uploadViewModel);
 
             var messages = await ImportTransactiesRabobankCsv2013Async(importRows);
-            foreach (var message in messages)
+            if (messages.Any())
             {
-                ModelState.AddModelError(nameof(UploadViewModel.Bestand), message);
+                foreach (var message in messages)
+                {
+                    ModelState.AddModelError(nameof(UploadViewModel.Bestand), message);
+                }
+                uploadViewModel.ResultMessage = $"Niet alle {importRows.Count} transacties zijn succesvol geïmporteerd, zie bovenstaande meldingen.";
             }
-            uploadViewModel.ResultMessage = $"Geen van de {importRows.Count} zijn geïmporteerd, omdat dit nog work in progress is.";
-            
+            else
+            {
+                uploadViewModel.ResultMessage = $"Alle {importRows.Count} transacties zijn succesvol geïmporteerd.";
+            }
             return View(uploadViewModel);
         }
 
@@ -466,7 +472,7 @@ namespace Kasboek.WebApp.Controllers
                         Bedrag = bedrag,
                         VanRekening = isBijschrijving ? tegenRekening : eigenRekening,
                         NaarRekening = isBijschrijving ? eigenRekening : tegenRekening,
-                        Omschrijving = omschrijving
+                        Omschrijving = string.IsNullOrWhiteSpace(omschrijving) ? null : omschrijving
                     };
 
                     //Validatie werkt op Id, zet voor nu expliciet (voor o.a. de Unlike validator)
@@ -505,7 +511,7 @@ namespace Kasboek.WebApp.Controllers
                 }
             }
 
-            //await _transactiesService.SaveChangesAsync();
+            await _transactiesService.SaveChangesAsync();
 
             return messages;
         }
@@ -596,7 +602,7 @@ namespace Kasboek.WebApp.Controllers
             rekening = new Rekening
             {
                 Naam = naam,
-                Rekeningnummer = rekeningnummer,
+                Rekeningnummer = string.IsNullOrWhiteSpace(rekeningnummer) ? null : rekeningnummer,
                 IsEigenRekening = false
             };
 
