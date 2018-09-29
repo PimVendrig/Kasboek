@@ -30,25 +30,22 @@
         {
         <tr>
             <td class="date">
-                @*Ivm issue https://github.com/aspnet/Mvc/issues/6796 tijdelijk geen DisplayFor gebruiken *@
-                @*@Html.DisplayFor(modelItem => item.Datum)*@
-                @item.Datum.ToString("ddd d/M/yyyy")
+                @{
+                    var nearDatumLinkParameters = new Dictionary<string, string> { { "nearDatum", item.Datum.ToString("yyyy-MM-dd") } };
+                }
+                <a asp-controller="Transacties" asp-action="Index" asp-all-route-data="nearDatumLinkParameters">@item.Datum.ToString("ddd d/M/yyyy")</a>
             </td>
             <td class="currency">
-                @*@Html.DisplayFor(modelItem => item.Bedrag)*@
                 @item.Bedrag.ToString("C")
             </td>
             <td class="@(item.VanRekening.IsEigenRekening ? "eigen-rekening" : "")">
-                @*@Html.DisplayFor(modelItem => item.VanRekening.Naam)*@
                 @item.VanRekening.Naam
             </td>
             <td class="@(item.NaarRekening.IsEigenRekening ? " eigen-rekening" : "")">
-                @*@Html.DisplayFor(modelItem => item.NaarRekening.Naam)*@
                 @item.NaarRekening.Naam
             </td>
-            <td class="multiline"><a asp-controller="Transacties" asp-action="@anchorAction" asp-route-id="@item.TransactieId">@*@Html.DisplayFor(modelItem => item.Omschrijving)*@@(item.Omschrijving ?? "- Geen omschrijving -")</a></td>
+            <td class="multiline"><a asp-controller="Transacties" asp-action="@anchorAction" asp-route-id="@item.TransactieId">@(item.Omschrijving ?? "- Geen omschrijving -")</a></td>
             <td>
-                @*@Html.DisplayFor(modelItem => item.Categorie.Omschrijving)*@
                 @item.Categorie?.Omschrijving
             </td>
         </tr>

@@ -2,9 +2,11 @@
 
 @{
     ViewData["Title"] = "Transacties";
+    var noCategorieLinkParameters = new Dictionary<string, string> { { "hasCategorie", false.ToString() } };
 }
 
 <p>
-    <a asp-action="Create">Transactie maken</a>
+    <a asp-action="Create">Transactie maken</a> |
+    <a asp-action="Index" asp-all-route-data="noCategorieLinkParameters">Transacties zonder categorie</a>
 </p>
 @await Html.PartialAsync("_Transacties", Model)
