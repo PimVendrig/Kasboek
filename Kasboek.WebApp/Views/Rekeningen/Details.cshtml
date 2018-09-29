@@ -42,6 +42,16 @@
     </dl>
 </div>
 <div>
+    @if (Model.StandaardCategorieId.HasValue)
+    {
+        <div class="form-group">
+            <form asp-action="SetStandaardCategorieOnTransactiesWithoutCategorie">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="RekeningId" />
+                <input type="submit" value="Stel standaard categorie in voor transacties zonder categorie" class="btn btn-default" />
+            </form>
+        </div>
+    }
     <a asp-action="Edit" asp-route-id="@Model.RekeningId">Bewerken</a> |
     <a asp-action="Delete" asp-route-id="@Model.RekeningId">Verwijderen</a> |
     <a asp-action="Index">Terug naar rekeningen</a>

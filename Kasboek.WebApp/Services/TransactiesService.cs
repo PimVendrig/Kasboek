@@ -17,14 +17,19 @@ namespace Kasboek.WebApp.Services
             _rekeningenService = rekeningenService;
         }
 
-        private IQueryable<Transactie> GetListQuery()
+        private IQueryable<Transactie> GetRawListQuery()
         {
             return _context.Transacties
-                .Include(t => t.NaarRekening)
-                .Include(t => t.VanRekening)
-                .Include(t => t.Categorie)
                 .OrderByDescending(t => t.Datum)
                 .ThenByDescending(t => t.TransactieId);
+        }
+
+        private IQueryable<Transactie> GetListQuery()
+        {
+            return GetRawListQuery()
+                .Include(t => t.NaarRekening)
+                .Include(t => t.VanRekening)
+                .Include(t => t.Categorie);
         }
 
         public async override Task<IList<Transactie>> GetListAsync()
@@ -127,5 +132,12 @@ namespace Kasboek.WebApp.Services
                 .ToListAsync();
         }
 
+        public async Task<IList<Transactie>> GetRawListWithNoCategorieByRekeningAsync(Rekening rekening)
+        {
+            return await GetRawListQuery()
+                .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .Where(t => t.Categorie == null)
+                .ToListAsync();
+        }
     }
 }

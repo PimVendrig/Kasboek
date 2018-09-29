@@ -255,6 +255,27 @@ namespace Kasboek.WebApp.Controllers
             return View(nameof(Merge), mergeViewModel);
         }
 
+        // POST: Rekeningen/SetStandaardCategorieOnTransactiesWithoutCategorie
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetStandaardCategorieOnTransactiesWithoutCategorie(int rekeningId)
+        {
+            var rekening = await _rekeningenService.GetRawSingleOrDefaultAsync(rekeningId);
+            if (rekening == null || !rekening.StandaardCategorieId.HasValue)
+            {
+                return NotFound();
+            }
+
+            var transacties = await _transactiesService.GetRawListWithNoCategorieByRekeningAsync(rekening);
+            foreach (var transactie in transacties)
+            {
+                transactie.CategorieId = rekening.StandaardCategorieId;
+            }
+
+            await _rekeningenService.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id = rekeningId });
+        }
+
         private async Task MoveTranssactiesAsync(Rekening uiteindelijkeRekening, Rekening overigeRekening)
         {
             var transacties = await _transactiesService.GetListByRekeningAsync(overigeRekening);
