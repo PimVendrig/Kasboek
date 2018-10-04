@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<Kasboek.WebApp.Models.Transactie>
 @{ 
     string anchorAction = ViewBag.TransactiesAnchorAction ?? "Details";
+    DateTime? nearDatum = ViewBag.NearDatum;
 }
 <table class="table table-striped table-hover">
     <thead>
@@ -29,7 +30,7 @@
         @foreach (var item in Model)
         {
         <tr>
-            <td class="date">
+            <td class="date@(nearDatum == item.Datum ? " on-datum" : "")">
                 @{
                     var nearDatumLinkParameters = new Dictionary<string, string> { { "nearDatum", item.Datum.ToString("yyyy-MM-dd") } };
                 }

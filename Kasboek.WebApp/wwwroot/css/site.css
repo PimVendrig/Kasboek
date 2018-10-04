@@ -21,7 +21,8 @@
     color: red;
 }
 
-.eigen-rekening {
+.eigen-rekening,
+.on-datum {
     font-weight: bold;
 }
 

@@ -10,7 +10,10 @@
             @Html.DisplayNameFor(model => model.Datum)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Datum)
+            @{
+                var nearDatumLinkParameters = new Dictionary<string, string> { { "nearDatum", Model.Datum.ToString("yyyy-MM-dd") } };
+            }
+            <a asp-controller="Transacties" asp-action="Index" asp-all-route-data="nearDatumLinkParameters">@Html.DisplayFor(model => model.Datum)</a>
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Bedrag)

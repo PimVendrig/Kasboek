@@ -28,6 +28,7 @@ namespace Kasboek.WebApp.Controllers
         {
             var instellingen = await _instellingenService.GetSingleAsync();
             ViewBag.TransactiesAnchorAction = instellingen.TransactieMeteenBewerken ? "Edit" : "Details";
+            ViewBag.NearDatum = nearDatum;
             return View(await _transactiesService.GetListWithFilterAsync(afterId, hasCategorie, nearDatum));
         }
 
