@@ -125,12 +125,13 @@ namespace Kasboek.WebApp.Services
                 .MaxAsync(t => (int?)t.TransactieId);
         }
 
-        public async Task<IList<Transactie>> GetListWithFilterAsync(int? afterId, bool? hasCategorie, DateTime? nearDatum)
+        public async Task<IList<Transactie>> GetListWithFilterAsync(int? afterId, bool? hasCategorie, DateTime? nearDatum, decimal? vanafBedrag)
         {
             return await GetListQuery()
                 .Where(t => !afterId.HasValue || t.TransactieId > afterId.Value)
                 .Where(t => !hasCategorie.HasValue || (hasCategorie.Value && t.Categorie != null) || (!hasCategorie.Value && t.Categorie == null))
                 .Where(t => !nearDatum.HasValue || (t.Datum >= nearDatum.Value.AddDays(-3) && t.Datum <= nearDatum.Value.AddDays(3)))
+                .Where(t => !vanafBedrag.HasValue || t.Bedrag >= vanafBedrag.Value)
                 .ToListAsync();
         }
 
