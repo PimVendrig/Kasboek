@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Kasboek.WebApp
 {
@@ -27,6 +28,7 @@ namespace Kasboek.WebApp
             services.AddDbContext<KasboekDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("KasboekDatabase")));
 
             services.AddAutoMapper();
+            services.Configure<FormOptions>(options => options.ValueCountLimit = 4096);
             services.AddMvc(options => options.MaxModelValidationErrors = 2000)
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
