@@ -7,6 +7,6 @@ namespace Kasboek.WebApp.Models.VerslagViewModels
         public int Id { get; set; }
         public string Tekst { get; set; }
         public List<decimal> Bedragen { get; set; }
-        public List<decimal> BedragenPerMaand { get; set; }
+        public List<decimal?> BedragenPerMaand { get; set; }
     }
 }

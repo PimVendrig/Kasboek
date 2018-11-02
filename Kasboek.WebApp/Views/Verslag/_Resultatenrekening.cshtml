@@ -22,7 +22,7 @@
             {
                 <th class="@(Model.TotaalRegel[i] < 0M ? "currency-negative" : "")">
                     <div class="currency">@Model.TotaalRegel[i].ToString("C")</div>
-                    <div class="currency">@Model.TotaalPerMaandRegel[i].ToString("C")</div>
+                    <div class="currency">@Model.TotaalPerMaandRegel[i]?.ToString("C")</div>
                 </th>
             }
         </tr>
@@ -38,7 +38,7 @@
                 {
                     <td class="@(verslagRegel.Bedragen[i] < 0M ? "currency-negative" : "")">
                         <div class="currency">@verslagRegel.Bedragen[i].ToString("C")</div>
-                        <div class="currency">@verslagRegel.BedragenPerMaand[i].ToString("C")</div>
+                        <div class="currency">@verslagRegel.BedragenPerMaand[i]?.ToString("C")</div>
                     </td>
                 }
             </tr>

@@ -45,11 +45,12 @@ namespace Kasboek.WebApp.Controllers
 
         private async Task<List<DateTime>> GetBalansDatumsAsync(DateTime? peilDatum)
         {
+            List<DateTime> datums = new List<DateTime>();
+
             //Balans toont situatie voor ieder jaar op 31 december.
             //Te beginnen bij de datum van de eerste transactie, en te eindigen bij de datum van de laatste transactie
+            //Bij het opgeven van een peildatum tonen we de situatie op het eind van iedere maand in dat jaar.
             var firstDatum = await _transactiesService.GetFirstTransactieDatumAsync();
-
-            List<DateTime> datums = new List<DateTime>();
 
             if (!firstDatum.HasValue)
             {
@@ -62,25 +63,44 @@ namespace Kasboek.WebApp.Controllers
                 return datums;
             }
 
-            datums.Add(firstDatum.Value);
             var lastDatum = peilDatum.HasValue ? peilDatum : await _transactiesService.GetLastTransactieDatumAsync();
 
-            for (var lastDayOfYear = new DateTime(firstDatum.Value.Year, 12, 31); lastDayOfYear < lastDatum.Value; lastDayOfYear = lastDayOfYear.AddYears(1))
+            if (!peilDatum.HasValue)
             {
-                //Eerste datum kan evt 31 december zijn, niet dubbel toevoegen
-                if (!datums.Contains(lastDayOfYear))
+                //Datums voor ieder jaar
+                datums.Add(firstDatum.Value);
+                for (var lastDayOfYear = new DateTime(firstDatum.Value.Year, 12, 31); lastDayOfYear < lastDatum.Value; lastDayOfYear = lastDayOfYear.AddYears(1))
                 {
-                    datums.Add(lastDayOfYear);
+                    //Eerste datum kan evt 31 december zijn, niet dubbel toevoegen
+                    if (!datums.Contains(lastDayOfYear))
+                    {
+                        datums.Add(lastDayOfYear);
+                    }
+                }
+            }
+            else
+            {
+                //Datums voor iedere maand in het peiljaar. Niet nodig om te kijken naar firstDatum
+                for (var lastDayOfMonth = new DateTime(lastDatum.Value.Year - 1, 12, 31); lastDayOfMonth < lastDatum.Value; lastDayOfMonth = GetNextMonthsLastDay(lastDayOfMonth))
+                {
+                    datums.Add(lastDayOfMonth);
                 }
             }
 
-            //Als er een eerste datum is, is er altijd een laatste datum (evt dezelfde datum, dus niet dubbel toevoegen)
+            //Laatste datum kan evt dezelfde datum als eerste datum zijn, dus niet dubbel toevoegen
             if (!datums.Contains(lastDatum.Value))
             {
                 datums.Add(lastDatum.Value);
             }
 
             return datums;
+        }
+
+        private DateTime GetNextMonthsLastDay(DateTime currentMonthsLastDay)
+        {
+            var nextMonthsFirstDay = currentMonthsLastDay.AddDays(1);
+            var daysInNextMonth = DateTime.DaysInMonth(nextMonthsFirstDay.Year, nextMonthsFirstDay.Month);
+            return new DateTime(nextMonthsFirstDay.Year, nextMonthsFirstDay.Month, daysInNextMonth);
         }
 
         private async Task<List<VerslagRegelViewModel>> GetBalansRegelsAsync(List<DateTime> datums)
@@ -134,11 +154,13 @@ namespace Kasboek.WebApp.Controllers
 
         private async Task<List<Tuple<DateTime, DateTime>>> GetResultatenrekeningPeriodesAsync(DateTime? peilDatum)
         {
+            var periodes = new List<Tuple<DateTime, DateTime>>();
+
             //Resultatenrekening toont situatie voor ieder jaar van 1 januari tot en met 31 december.
             //Te beginnen bij de datum van de eerste transactie, en te eindigen bij de datum van de laatste transactie
+            //Bij het opgeven van een peildatum tonen we de situatie van iedere maand in dat jaar.
             var datums = await GetBalansDatumsAsync(peilDatum);
 
-            var periodes = new List<Tuple<DateTime, DateTime>>();
             if (datums.Count < 2)
             {
                 //Geen reeks te maken met minder dan 2 datums
@@ -146,10 +168,19 @@ namespace Kasboek.WebApp.Controllers
             }
 
             //De startdatum is een dag na de vorige einddatum, om een periode van 1 januari t/m 31 december te krijgen
+            //Of een periode van 1 januari t/m 31 januari etc
             var startDatum = datums.First().AddDays(1);
+            var lastDatum = datums.Last();
+
+            if (peilDatum.HasValue && !(lastDatum.Month == 12 && lastDatum.Day == 31))
+            {
+                //Indien we een jaar tonen, en het is geen volledig kalenderjaar (bijv. weergave t/m augustus)
+                //Tonen we voor het overall totaal (year-to-date) ook de situatie van een volledig jaar
+                periodes.Add(new Tuple<DateTime, DateTime>(lastDatum.AddDays(1).AddYears(-1), lastDatum));
+            }
 
             //Begin met het overall totaal
-            periodes.Add(new Tuple<DateTime, DateTime>(startDatum, datums.Last()));
+            periodes.Add(new Tuple<DateTime, DateTime>(startDatum, lastDatum));
 
             foreach (var eindDatum in datums.Skip(1))
             {
@@ -171,7 +202,7 @@ namespace Kasboek.WebApp.Controllers
                     Id = categorie.CategorieId,
                     Tekst = categorie.Omschrijving,
                     Bedragen = new List<decimal>(),
-                    BedragenPerMaand = new List<decimal>()
+                    BedragenPerMaand = new List<decimal?>()
                 };
 
                 foreach (var periode in periodes)
@@ -179,7 +210,8 @@ namespace Kasboek.WebApp.Controllers
                     var bedrag = await _categorieenService.GetSaldoForPeriodeAsync(categorie, periode.Item1, periode.Item2);
                     regel.Bedragen.Add(bedrag);
 
-                    regel.BedragenPerMaand.Add(bedrag / GetAantalMaanden(periode));
+                    int aantalMaanden = GetAantalMaanden(periode);
+                    regel.BedragenPerMaand.Add(aantalMaanden == 1 ? (decimal?)null : bedrag / aantalMaanden);
                 }
 
                 if (regel.Bedragen.Any(b => b != 0M))
@@ -200,15 +232,16 @@ namespace Kasboek.WebApp.Controllers
             return 1 + ((periode.Item2.Year - periode.Item1.Year) * 12) + periode.Item2.Month - periode.Item1.Month;
         }
 
-        private List<decimal> GetTotaalPerMaandRegel(List<Tuple<DateTime, DateTime>> periodes, List<decimal> totaalRegel)
+        private List<decimal?> GetTotaalPerMaandRegel(List<Tuple<DateTime, DateTime>> periodes, List<decimal> totaalRegel)
         {
-            var totaalPerMaandRegel = new List<decimal>();
+            var totaalPerMaandRegel = new List<decimal?>();
 
             for (var i = 0; i < periodes.Count; i++)
             {
                 var totaalBedrag = totaalRegel[i];
                 var periode = periodes[i];
-                totaalPerMaandRegel.Add(totaalBedrag / GetAantalMaanden(periode));
+                int aantalMaanden = GetAantalMaanden(periode);
+                totaalPerMaandRegel.Add(aantalMaanden == 1 ? (decimal?) null : totaalBedrag / aantalMaanden);
             }
 
             return totaalPerMaandRegel;
