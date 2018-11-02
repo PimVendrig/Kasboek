@@ -22,28 +22,28 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Verslag
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? peilDatum)
         {
             var verslag = new VerslagViewModel
             {
-                Balans = await GetBalansAsync(),
-                Resultatenrekening = await GetResultatenrekeningAsync()
+                Balans = await GetBalansAsync(peilDatum),
+                Resultatenrekening = await GetResultatenrekeningAsync(peilDatum)
             };
             return View(verslag);
         }
 
-        private async Task<BalansViewModel> GetBalansAsync()
+        private async Task<BalansViewModel> GetBalansAsync(DateTime? peilDatum)
         {
             var balans = new BalansViewModel
             {
-                Datums = await GetBalansDatumsAsync()
+                Datums = await GetBalansDatumsAsync(peilDatum)
             };
             balans.VerslagRegels = await GetBalansRegelsAsync(balans.Datums);
             balans.TotaalRegel = GetTotaalRegel(balans.Datums.Count, balans.VerslagRegels);
             return balans;
         }
 
-        private async Task<List<DateTime>> GetBalansDatumsAsync()
+        private async Task<List<DateTime>> GetBalansDatumsAsync(DateTime? peilDatum)
         {
             //Balans toont situatie voor ieder jaar op 31 december.
             //Te beginnen bij de datum van de eerste transactie, en te eindigen bij de datum van de laatste transactie
@@ -56,9 +56,14 @@ namespace Kasboek.WebApp.Controllers
                 //Als de eerste datum geen waarde heeft, is er niets
                 return datums;
             }
+            if (peilDatum.HasValue && firstDatum.Value > peilDatum.Value)
+            {
+                //Als de eerste datum na de peildatum ligt, is er niets
+                return datums;
+            }
 
             datums.Add(firstDatum.Value);
-            var lastDatum = await _transactiesService.GetLastTransactieDatumAsync();
+            var lastDatum = peilDatum.HasValue ? peilDatum : await _transactiesService.GetLastTransactieDatumAsync();
 
             for (var lastDayOfYear = new DateTime(firstDatum.Value.Year, 12, 31); lastDayOfYear < lastDatum.Value; lastDayOfYear = lastDayOfYear.AddYears(1))
             {
@@ -115,11 +120,11 @@ namespace Kasboek.WebApp.Controllers
             return totaalRegel;
         }
 
-        private async Task<ResultatenrekeningViewModel> GetResultatenrekeningAsync()
+        private async Task<ResultatenrekeningViewModel> GetResultatenrekeningAsync(DateTime? peilDatum)
         {
             var resultatenrekening = new ResultatenrekeningViewModel
             {
-                Periodes = await GetResultatenrekeningPeriodesAsync()
+                Periodes = await GetResultatenrekeningPeriodesAsync(peilDatum)
             };
             resultatenrekening.VerslagRegels = await GetResultatenrekeningRegelsAsync(resultatenrekening.Periodes);
             resultatenrekening.TotaalRegel = GetTotaalRegel(resultatenrekening.Periodes.Count, resultatenrekening.VerslagRegels);
@@ -127,11 +132,11 @@ namespace Kasboek.WebApp.Controllers
             return resultatenrekening;
         }
 
-        private async Task<List<Tuple<DateTime, DateTime>>> GetResultatenrekeningPeriodesAsync()
+        private async Task<List<Tuple<DateTime, DateTime>>> GetResultatenrekeningPeriodesAsync(DateTime? peilDatum)
         {
             //Resultatenrekening toont situatie voor ieder jaar van 1 januari tot en met 31 december.
             //Te beginnen bij de datum van de eerste transactie, en te eindigen bij de datum van de laatste transactie
-            var datums = await GetBalansDatumsAsync();
+            var datums = await GetBalansDatumsAsync(peilDatum);
 
             var periodes = new List<Tuple<DateTime, DateTime>>();
             if (datums.Count < 2)

@@ -6,9 +6,12 @@
             <th></th>
             @foreach (var datum in Model.Datums)
             {
-                <th class="date">
-                    @datum.ToString("d")
-                </th>
+            <th class="date">
+                @{
+                    var peilDatumLinkParameters = new Dictionary<string, string> { { "peilDatum", datum.ToString("yyyy-MM-dd") } };
+                }
+                <a asp-controller="Verslag" asp-action="Index" asp-all-route-data="peilDatumLinkParameters">@datum.ToString("d")</a>
+            </th>
             }
         </tr>
     </thead>
