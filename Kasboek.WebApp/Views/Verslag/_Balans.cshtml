@@ -23,7 +23,7 @@
             @foreach (var bedrag in Model.TotaalRegel)
             {
                 <th class="currency @(bedrag < 0M ? "currency-negative" : "")">
-                    @bedrag.ToString("C")
+                    @(bedrag == 0M ? "-" : bedrag.ToString("C"))
                 </th>
             }
         </tr>
@@ -37,9 +37,9 @@
                 </td>
                 @foreach (var bedrag in verslagRegel.Bedragen)
                 {
-                    <td class="currency @(bedrag < 0M ? "currency-negative" : "")">
-                        @bedrag.ToString("C")
-                    </td>
+                <td class="currency @(bedrag < 0M ? "currency-negative" : "")">
+                    @(bedrag == 0M ? "-" : bedrag.ToString("C"))
+                </td>
                 }
             </tr>
         }

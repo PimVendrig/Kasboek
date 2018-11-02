@@ -21,8 +21,8 @@
             @for (int i = 0; i < Model.TotaalRegel.Count; i++)
             {
                 <th class="@(Model.TotaalRegel[i] < 0M ? "currency-negative" : "")">
-                    <div class="currency">@Model.TotaalRegel[i].ToString("C")</div>
-                    <div class="currency">@Model.TotaalPerMaandRegel[i]?.ToString("C")</div>
+                    <div class="currency">@(Model.TotaalRegel[i] == 0M ? "-" : Model.TotaalRegel[i].ToString("C"))</div>
+                    <div class="currency">@(Model.TotaalPerMaandRegel[i] == 0M ? "-" : Model.TotaalPerMaandRegel[i]?.ToString("C"))</div>
                 </th>
             }
         </tr>
@@ -37,8 +37,8 @@
                 @for (int i = 0; i < verslagRegel.Bedragen.Count; i++)
                 {
                     <td class="@(verslagRegel.Bedragen[i] < 0M ? "currency-negative" : "")">
-                        <div class="currency">@verslagRegel.Bedragen[i].ToString("C")</div>
-                        <div class="currency">@verslagRegel.BedragenPerMaand[i]?.ToString("C")</div>
+                        <div class="currency">@(verslagRegel.Bedragen[i] == 0M ? "-" : verslagRegel.Bedragen[i].ToString("C"))</div>
+                        <div class="currency">@(verslagRegel.BedragenPerMaand[i] == 0M ? "-" : verslagRegel.BedragenPerMaand[i]?.ToString("C"))</div>
                     </td>
                 }
             </tr>
