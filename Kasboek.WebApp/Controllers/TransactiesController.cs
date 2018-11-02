@@ -24,12 +24,12 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Transacties
-        public async Task<IActionResult> Index(int? afterId, bool? hasCategorie, DateTime? nearDatum, decimal? vanafBedrag)
+        public async Task<IActionResult> Index(int? afterId, bool? hasCategorie, DateTime? startDatum, DateTime? eindDatum, DateTime? nearDatum, decimal? vanafBedrag)
         {
             var instellingen = await _instellingenService.GetSingleAsync();
             ViewBag.TransactiesAnchorAction = instellingen.TransactieMeteenBewerken ? "Edit" : "Details";
             ViewBag.NearDatum = nearDatum;
-            return View(await _transactiesService.GetListWithFilterAsync(afterId, hasCategorie, nearDatum, vanafBedrag));
+            return View(await _transactiesService.GetListWithFilterAsync(afterId, hasCategorie, startDatum, eindDatum, nearDatum, vanafBedrag));
         }
 
         // GET: Transacties/Details/5

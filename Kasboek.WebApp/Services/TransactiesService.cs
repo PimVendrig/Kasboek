@@ -93,17 +93,20 @@ namespace Kasboek.WebApp.Services
             }
         }
 
-        public async Task<IList<Transactie>> GetListByRekeningAsync(Rekening rekening)
+        public async Task<IList<Transactie>> GetListByRekeningAsync(Rekening rekening, DateTime? datum)
         {
             return await GetListQuery()
                 .Where(t => t.VanRekening == rekening || t.NaarRekening == rekening)
+                .Where(t => !datum.HasValue || t.Datum <= datum.Value)
                 .ToListAsync();
         }
 
-        public async Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie)
+        public async Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie, DateTime? startDatum, DateTime? eindDatum)
         {
             return await GetListQuery()
                 .Where(t => t.Categorie == categorie)
+                .Where(t => !startDatum.HasValue || t.Datum >= startDatum.Value)
+                .Where(t => !eindDatum.HasValue || t.Datum <= eindDatum.Value)
                 .ToListAsync();
         }
 
@@ -125,11 +128,13 @@ namespace Kasboek.WebApp.Services
                 .MaxAsync(t => (int?)t.TransactieId);
         }
 
-        public async Task<IList<Transactie>> GetListWithFilterAsync(int? afterId, bool? hasCategorie, DateTime? nearDatum, decimal? vanafBedrag)
+        public async Task<IList<Transactie>> GetListWithFilterAsync(int? afterId, bool? hasCategorie, DateTime? startDatum, DateTime? eindDatum, DateTime? nearDatum, decimal? vanafBedrag)
         {
             return await GetListQuery()
                 .Where(t => !afterId.HasValue || t.TransactieId > afterId.Value)
                 .Where(t => !hasCategorie.HasValue || (hasCategorie.Value && t.Categorie != null) || (!hasCategorie.Value && t.Categorie == null))
+                .Where(t => !startDatum.HasValue || t.Datum >= startDatum.Value)
+                .Where(t => !eindDatum.HasValue || t.Datum <= eindDatum.Value)
                 .Where(t => !nearDatum.HasValue || (t.Datum >= nearDatum.Value.AddDays(-3) && t.Datum <= nearDatum.Value.AddDays(3)))
                 .Where(t => !vanafBedrag.HasValue || t.Bedrag >= vanafBedrag.Value)
                 .ToListAsync();

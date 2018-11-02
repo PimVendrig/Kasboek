@@ -5,6 +5,7 @@ using Kasboek.WebApp.Models.RekeningenViewModels;
 using Kasboek.WebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Categorieen/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, DateTime? startDatum, DateTime? eindDatum)
         {
             if (id == null)
             {
@@ -49,9 +50,9 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
             await Task.WhenAll(
-                SetSaldoAsync(categorie),
+                SetSaldoAsync(categorie, startDatum, eindDatum),
                 SetRekeningenMetStandaardCategorieAsync(categorie),
-                SetTransactiesAsync(categorie),
+                SetTransactiesAsync(categorie, startDatum, eindDatum),
                 SetTransactiesAnchorAction());
 
             return View(categorie);
@@ -91,7 +92,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            await SetSaldoAsync(categorie);
+            await SetSaldoAsync(categorie, null, null);
             return View(categorie);
         }
 
@@ -126,7 +127,7 @@ namespace Kasboek.WebApp.Controllers
                     }
                 }
             }
-            await SetSaldoAsync(categorie);
+            await SetSaldoAsync(categorie, null, null);
             return View(categorie);
         }
 
@@ -143,7 +144,7 @@ namespace Kasboek.WebApp.Controllers
             {
                 return NotFound();
             }
-            await SetSaldoAsync(categorie);
+            await SetSaldoAsync(categorie, null, null);
 
             return View(categorie);
         }
@@ -237,7 +238,7 @@ namespace Kasboek.WebApp.Controllers
 
         private async Task MoveTransactiesAsync(Categorie uiteindelijkeCategorie, Categorie overigeCategorie)
         {
-            var transacties = await _transactiesService.GetListByCategorieAsync(overigeCategorie);
+            var transacties = await _transactiesService.GetListByCategorieAsync(overigeCategorie, null, null);
             foreach (var transactie in transacties)
             {
                 transactie.Categorie = uiteindelijkeCategorie;
@@ -265,9 +266,9 @@ namespace Kasboek.WebApp.Controllers
             mergeViewModel.Saldo = saldos.Sum();
         }
 
-        private async Task SetSaldoAsync(Categorie categorie)
+        private async Task SetSaldoAsync(Categorie categorie, DateTime? startDatum, DateTime? eindDatum)
         {
-            ViewData["Saldo"] = await _categorieenService.GetSaldoAsync(categorie);
+            ViewData["Saldo"] = await _categorieenService.GetSaldoForPeriodeAsync(categorie, startDatum, eindDatum);
         }
 
         private async Task SetRekeningenMetStandaardCategorieAsync(Categorie categorie)
@@ -275,9 +276,9 @@ namespace Kasboek.WebApp.Controllers
             ViewBag.RekeningenMetStandaardCategorie = _mapper.Map<IList<RekeningViewModel>>(await _rekeningenService.GetListByStandaardCategorieAsync(categorie));
         }
 
-        private async Task SetTransactiesAsync(Categorie categorie)
+        private async Task SetTransactiesAsync(Categorie categorie, DateTime? startDatum, DateTime? eindDatum)
         {
-            ViewBag.Transacties = await _transactiesService.GetListByCategorieAsync(categorie);
+            ViewBag.Transacties = await _transactiesService.GetListByCategorieAsync(categorie, startDatum, eindDatum);
         }
 
         private async Task SetTransactiesAnchorAction()

@@ -7,8 +7,13 @@
             @foreach (var periode in Model.Periodes)
             {
                 <th>
-                    <div class="date">Van @periode.Item1.ToString("d")</div>
-                    <div class="date">tot @periode.Item2.ToString("d")</div>
+                    @{
+                        var peilDatumLinkParameters = new Dictionary<string, string> { { "peilDatum", periode.Item2.ToString("yyyy-MM-dd") } };
+                    }
+                    <a asp-controller="Verslag" asp-action="Index" asp-all-route-data="peilDatumLinkParameters">
+                        <div class="date">Van @periode.Item1.ToString("d")</div>
+                        <div class="date">tot @periode.Item2.ToString("d")</div>
+                    </a>
                 </th>
             }
         </tr>
@@ -21,8 +26,16 @@
             @for (int i = 0; i < Model.TotaalRegel.Count; i++)
             {
                 <th class="@(Model.TotaalRegel[i] < 0M ? "currency-negative" : "")">
-                    <div class="currency">@(Model.TotaalRegel[i] == 0M ? "-" : Model.TotaalRegel[i].ToString("C"))</div>
-                    <div class="currency">@(Model.TotaalPerMaandRegel[i] == 0M ? "-" : Model.TotaalPerMaandRegel[i]?.ToString("C"))</div>
+                    @{
+                        var periodeLinkParameters = new Dictionary<string, string> {
+                            { "startDatum", Model.Periodes[i].Item1.ToString("yyyy-MM-dd") },
+                            { "eindDatum", Model.Periodes[i].Item2.ToString("yyyy-MM-dd") }
+                        };
+                    }
+                    <a asp-controller="Transacties" asp-action="Index" asp-all-route-data="periodeLinkParameters">
+                        <div class="currency">@(Model.TotaalRegel[i] == 0M ? "-" : Model.TotaalRegel[i].ToString("C"))</div>
+                        <div class="currency">@(Model.TotaalPerMaandRegel[i] == 0M ? "-" : Model.TotaalPerMaandRegel[i]?.ToString("C"))</div>
+                    </a>
                 </th>
             }
         </tr>
@@ -31,14 +44,23 @@
         @foreach (var verslagRegel in Model.VerslagRegels)
         {
             <tr>
-                <td>
+                <th>
                     <a asp-controller="Categorieen" asp-action="Details" asp-route-id="@verslagRegel.Id">@verslagRegel.Tekst</a>
-                </td>
+                </th>
                 @for (int i = 0; i < verslagRegel.Bedragen.Count; i++)
                 {
                     <td class="@(verslagRegel.Bedragen[i] < 0M ? "currency-negative" : "")">
-                        <div class="currency">@(verslagRegel.Bedragen[i] == 0M ? "-" : verslagRegel.Bedragen[i].ToString("C"))</div>
-                        <div class="currency">@(verslagRegel.BedragenPerMaand[i] == 0M ? "-" : verslagRegel.BedragenPerMaand[i]?.ToString("C"))</div>
+                        @{
+                            var periodeLinkParameters = new Dictionary<string, string> {
+                                { "id", verslagRegel.Id.ToString() },
+                                { "startDatum", Model.Periodes[i].Item1.ToString("yyyy-MM-dd") },
+                                { "eindDatum", Model.Periodes[i].Item2.ToString("yyyy-MM-dd") }
+                            };
+                        }
+                        <a asp-controller="Categorieen" asp-action="Details" asp-all-route-data="periodeLinkParameters">
+                            <div class="currency">@(verslagRegel.Bedragen[i] == 0M ? "-" : verslagRegel.Bedragen[i].ToString("C"))</div>
+                            <div class="currency">@(verslagRegel.BedragenPerMaand[i] == 0M ? "-" : verslagRegel.BedragenPerMaand[i]?.ToString("C"))</div>
+                        </a>
                     </td>
                 }
             </tr>

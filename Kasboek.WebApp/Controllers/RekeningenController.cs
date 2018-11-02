@@ -5,6 +5,7 @@ using Kasboek.WebApp.Services;
 using Kasboek.WebApp.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace Kasboek.WebApp.Controllers
         }
 
         // GET: Rekeningen/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, DateTime? datum)
         {
             if (id == null)
             {
@@ -48,8 +49,8 @@ namespace Kasboek.WebApp.Controllers
                 return NotFound();
             }
             await Task.WhenAll(
-                SetSaldoAsync(rekening),
-                SetTransactiesAsync(rekening),
+                SetSaldoAsync(rekening, datum),
+                SetTransactiesAsync(rekening, datum),
                 SetTransactiesAnchorAction());
 
             return View(rekening);
@@ -93,7 +94,7 @@ namespace Kasboek.WebApp.Controllers
             }
             await Task.WhenAll(
                 SetSelectListsAsync(rekening),
-                SetSaldoAsync(rekening));
+                SetSaldoAsync(rekening, null));
             
             return View(rekening);
         }
@@ -131,7 +132,7 @@ namespace Kasboek.WebApp.Controllers
             }
             await Task.WhenAll(
                 SetSelectListsAsync(rekening),
-                SetSaldoAsync(rekening));
+                SetSaldoAsync(rekening, null));
 
             return View(rekening);
         }
@@ -162,7 +163,7 @@ namespace Kasboek.WebApp.Controllers
                 ModelState.AddModelError(string.Empty, "De rekening is ingesteld als de portemonnee rekening en kan daardoor niet verwijderd worden.");
                 ViewBag.DisableForm = true;
             }
-            await SetSaldoAsync(rekening);
+            await SetSaldoAsync(rekening, null);
 
             return View(rekening);
         }
@@ -278,7 +279,7 @@ namespace Kasboek.WebApp.Controllers
 
         private async Task MoveTranssactiesAsync(Rekening uiteindelijkeRekening, Rekening overigeRekening)
         {
-            var transacties = await _transactiesService.GetListByRekeningAsync(overigeRekening);
+            var transacties = await _transactiesService.GetListByRekeningAsync(overigeRekening, null);
             foreach (var transactie in transacties)
             {
                 if (transactie.VanRekening == uiteindelijkeRekening || transactie.NaarRekening == uiteindelijkeRekening)
@@ -319,14 +320,14 @@ namespace Kasboek.WebApp.Controllers
             ViewData["StandaardCategorieId"] = SelectListUtil.GetSelectList(await _categorieenService.GetSelectListAsync(), rekening?.StandaardCategorieId);
         }
 
-        private async Task SetSaldoAsync(Rekening rekening)
+        private async Task SetSaldoAsync(Rekening rekening, DateTime? datum)
         {
-            ViewData["Saldo"] = await _rekeningenService.GetSaldoAsync(rekening);
+            ViewData["Saldo"] = await _rekeningenService.GetSaldoOnDatumAsync(rekening, datum);
         }
 
-        private async Task SetTransactiesAsync(Rekening rekening)
+        private async Task SetTransactiesAsync(Rekening rekening, DateTime? datum)
         {
-            ViewBag.Transacties = await _transactiesService.GetListByRekeningAsync(rekening);
+            ViewBag.Transacties = await _transactiesService.GetListByRekeningAsync(rekening, datum);
         }
 
         private async Task SetTransactiesAnchorAction()

@@ -9,12 +9,12 @@ namespace Kasboek.WebApp.Services
     {
         Task<bool> ExistsAsync(int id);
         Task DetermineCategorieAsync(Transactie transactie);
-        Task<IList<Transactie>> GetListByRekeningAsync(Rekening rekening);
-        Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie);
+        Task<IList<Transactie>> GetListByRekeningAsync(Rekening rekening, DateTime? datum);
+        Task<IList<Transactie>> GetListByCategorieAsync(Categorie categorie, DateTime? startDatum, DateTime? eindDatum);
         Task<DateTime?> GetFirstTransactieDatumAsync();
         Task<DateTime?> GetLastTransactieDatumAsync();
         Task<int?> GetLastIdAsync();
-        Task<IList<Transactie>> GetListWithFilterAsync(int? afterId, bool? hasCategorie, DateTime? nearDatum, decimal? vanafBedrag);
+        Task<IList<Transactie>> GetListWithFilterAsync(int? afterId, bool? hasCategorie, DateTime? startDatum, DateTime? eindDatum, DateTime? nearDatum, decimal? vanafBedrag);
         Task<IList<Transactie>> GetRawListWithNoCategorieByRekeningAsync(Rekening rekening);
     }
 }

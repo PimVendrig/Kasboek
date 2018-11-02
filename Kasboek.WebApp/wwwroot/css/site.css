@@ -17,7 +17,8 @@
     white-space: nowrap;
 }
 
-.currency-negative {
+.currency-negative,
+.currency-negative a {
     color: red;
 }
 
