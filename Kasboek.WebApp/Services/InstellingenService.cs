@@ -39,6 +39,7 @@ namespace Kasboek.WebApp.Services
         {
             return await _context.Instellingen
                 .Include(i => i.StandaardVanRekening)
+                .Include(i => i.PortemonneeRekening)
                 .SingleAsync();
         }
 
