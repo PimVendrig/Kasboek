@@ -142,6 +142,42 @@ namespace Kasboek.WebApp.Controllers
             return View(uploadViewModel);
         }
 
+        // GET: Importeren/TransactiesOudeExcel
+        public IActionResult TransactiesOudeExcel()
+        {
+            return View(new UploadViewModel { Action = nameof(TransactiesOudeExcel) });
+        }
+
+        // POST: Importeren/TransactiesOudeExcel
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransactiesOudeExcel(UploadViewModel uploadViewModel)
+        {
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', null, 5);
+            if (importRows == null)
+            {
+                //Invalid uploadViewModel
+                return View(uploadViewModel);
+            }
+
+            await FillNewDataLinks(uploadViewModel);
+
+            var messages = await ImportTransactiesOudeExcelAsync(importRows);
+            if (messages.Any())
+            {
+                foreach (var message in messages)
+                {
+                    ModelState.AddModelError(nameof(UploadViewModel.Bestand), message);
+                }
+                uploadViewModel.ResultMessage = $"Niet alle {importRows.Count} transacties zijn succesvol geïmporteerd, zie bovenstaande meldingen.";
+            }
+            else
+            {
+                uploadViewModel.ResultMessage = $"Alle {importRows.Count} transacties zijn succesvol geïmporteerd.";
+            }
+            return View(uploadViewModel);
+        }
+
         private async Task FillNewDataLinks(UploadViewModel uploadViewModel)
         {
             //Haal de huidige max ids op om de nieuwe items te kunnen weergeven
@@ -511,6 +547,102 @@ namespace Kasboek.WebApp.Controllers
                 }
             }
 
+            await _transactiesService.SaveChangesAsync();
+
+            return messages;
+        }
+
+
+        private async Task<List<string>> ImportTransactiesOudeExcelAsync(List<List<string>> importRows)
+        {
+            var messages = new List<string>();
+
+            //Massa import, laad alle rekeningen van te voren in.
+            var rekeningen = await _rekeningenService.GetListAsync();
+
+            for (var rowIndex = 0; rowIndex < importRows.Count; rowIndex++)
+            {
+                var importRow = importRows[rowIndex];
+                
+                var errorMessages = new List<string>();
+
+                var transactie = new Transactie
+                {
+                    Omschrijving = string.IsNullOrWhiteSpace(importRow[4]) ? null : importRow[4].Trim()
+                };
+
+                var datumImportValue = importRow[0].Trim();
+                if (DateTime.TryParseExact(datumImportValue, "d-M-yyyy", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime datum))
+                {
+                    transactie.Datum = datum;
+                }
+                else
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{datumImportValue}' is geen geldige datum.");
+                }
+
+                var bedragImportValue = importRow[1].Trim();
+                if (decimal.TryParse(bedragImportValue, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal bedrag))
+                {
+                    transactie.Bedrag = bedrag;
+                }
+                else
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{bedragImportValue}' is geen geldig bedrag.");
+                }
+
+                var vanRekeningImportValue = importRow[2].Trim();
+                (var rekening, var rekeningErrorMessages) = FindOrImportRekening(rekeningen, string.Empty, vanRekeningImportValue);
+                if (rekening == null)
+                {
+                    //Validatie werkt op Id, die niet null kan zijn (maar 0).
+                    foreach (var rekeningErrorMessage in rekeningErrorMessages)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {rekeningErrorMessage}");
+                    }
+                }
+                else
+                {
+                    //Validatie werkt op Id, zet voor nu expliciet (voor o.a. de Unlike validator)
+                    transactie.VanRekening = rekening;
+                    transactie.VanRekeningId = transactie.VanRekening.RekeningId;
+                }
+
+                var naarRekeningImportValue = importRow[3].Trim();
+                (rekening, rekeningErrorMessages) = FindOrImportRekening(rekeningen, string.Empty, naarRekeningImportValue);
+                if (rekening == null)
+                {
+                    //Validatie werkt op Id, die niet null kan zijn (maar 0).
+                    foreach (var rekeningErrorMessage in rekeningErrorMessages)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {rekeningErrorMessage}");
+                    }
+                }
+                else
+                {
+                    //Validatie werkt op Id, zet voor nu expliciet (voor o.a. de Unlike validator)
+                    transactie.NaarRekening = rekening;
+                    transactie.NaarRekeningId = transactie.NaarRekening.RekeningId;
+                }
+
+                await _transactiesService.DetermineCategorieAsync(transactie);
+
+                var validationResults = new List<ValidationResult>();
+                Validator.TryValidateObject(transactie, new ValidationContext(transactie, null, null), validationResults, true);
+                foreach (var validationResult in validationResults)
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {validationResult.ErrorMessage}");
+                }
+
+                if (errorMessages.Any())
+                {
+                    messages.AddRange(errorMessages);
+                }
+                else
+                {
+                    _transactiesService.Add(transactie);
+                }
+            }
             await _transactiesService.SaveChangesAsync();
 
             return messages;
