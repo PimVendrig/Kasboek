@@ -45,7 +45,11 @@
             <td class="@(item.NaarRekening.IsEigenRekening ? " eigen-rekening" : "")">
                 @item.NaarRekening.Naam
             </td>
-            <td class="multiline"><a asp-controller="Transacties" asp-action="@anchorAction" asp-route-id="@item.TransactieId">@(item.Omschrijving ?? "- Geen omschrijving -")</a></td>
+            <td>
+                <a asp-controller="Transacties" asp-action="@anchorAction" asp-route-id="@item.TransactieId">
+                    <div class="multiline">@(item.Omschrijving ?? "-")</div>
+                </a>
+            </td>
             <td>
                 @item.Categorie?.Omschrijving
             </td>

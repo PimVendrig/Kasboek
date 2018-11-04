@@ -22,7 +22,7 @@ namespace Kasboek.WebApp.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Bedrag { get; set; }
 
-        [DisplayFormat(NullDisplayText = "- Geen omschrijving -")]
+        [DisplayFormat(NullDisplayText = "-")]
         [DataType(DataType.MultilineText)]
         [StringLength(500)]
         public string Omschrijving { get; set; }
