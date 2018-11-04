@@ -14,7 +14,7 @@ namespace Kasboek.WebApp.Utils
     /// </summary>
     public class FileHelpers
     {
-        public static async Task<string> ProcessFormFile(IFormFile formFile, ModelStateDictionary modelState)
+        public static async Task<string> ProcessFormFile(IFormFile formFile, ModelStateDictionary modelState, bool useUTF8Encoding)
         {
             var csvContentTypes = new List<string> { "text/plain", "text/csv", "text/x-csv", "application/vnd.ms-excel" };
 
@@ -49,13 +49,10 @@ namespace Kasboek.WebApp.Utils
                 {
                     string fileContents;
 
-                    // The StreamReader is created to read files that are UTF-8 encoded. 
-                    // If uploads require some other encoding, provide the encoding in the 
-                    // using statement. To change to 32-bit encoding, change 
-                    // new UTF8Encoding(...) to new UTF32Encoding().
+                    Encoding encoding = useUTF8Encoding ? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true) : Encoding.GetEncoding(1252);
                     using (var reader = new StreamReader(
                         formFile.OpenReadStream(),
-                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+                        encoding,
                         detectEncodingFromByteOrderMarks: true))
                     {
                         fileContents = await reader.ReadToEndAsync();

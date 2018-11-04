@@ -45,7 +45,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RekeningenOudeApplicatie(UploadViewModel uploadViewModel)
         {
-            var importRows = await TryGetImportRowsAsync(uploadViewModel, ';', null, 4);
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, ';', null, 4, false, true);
             if (importRows == null)
             {
                 //Invalid uploadViewModel
@@ -81,7 +81,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TransactiesOudeApplicatie(UploadViewModel uploadViewModel)
         {
-            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', null, 6);
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', null, 6, false, true);
             if (importRows == null)
             {
                 //Invalid uploadViewModel
@@ -117,7 +117,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TransactiesRabobankCsv2013(UploadViewModel uploadViewModel)
         {
-            var importRows = await TryGetImportRowsAsync(uploadViewModel, ',', '"', 19);
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, ',', '"', 19, false, true);
             if (importRows == null)
             {
                 //Invalid uploadViewModel
@@ -153,7 +153,7 @@ namespace Kasboek.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TransactiesOudeExcel(UploadViewModel uploadViewModel)
         {
-            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', null, 5);
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, '\t', null, 5, false, true);
             if (importRows == null)
             {
                 //Invalid uploadViewModel
@@ -163,6 +163,42 @@ namespace Kasboek.WebApp.Controllers
             await FillNewDataLinks(uploadViewModel);
 
             var messages = await ImportTransactiesOudeExcelAsync(importRows);
+            if (messages.Any())
+            {
+                foreach (var message in messages)
+                {
+                    ModelState.AddModelError(nameof(UploadViewModel.Bestand), message);
+                }
+                uploadViewModel.ResultMessage = $"Niet alle {importRows.Count} transacties zijn succesvol geïmporteerd, zie bovenstaande meldingen.";
+            }
+            else
+            {
+                uploadViewModel.ResultMessage = $"Alle {importRows.Count} transacties zijn succesvol geïmporteerd.";
+            }
+            return View(uploadViewModel);
+        }
+
+        // GET: Importeren/TransactiesRabobankCsv2018
+        public IActionResult TransactiesRabobankCsv2018()
+        {
+            return View(new UploadViewModel { Action = nameof(TransactiesRabobankCsv2018) });
+        }
+
+        // POST: Importeren/TransactiesRabobankCsv2018
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransactiesRabobankCsv2018(UploadViewModel uploadViewModel)
+        {
+            var importRows = await TryGetImportRowsAsync(uploadViewModel, ',', '"', 26, true, false);
+            if (importRows == null)
+            {
+                //Invalid uploadViewModel
+                return View(uploadViewModel);
+            }
+
+            await FillNewDataLinks(uploadViewModel);
+
+            var messages = await ImportTransactiesRabobankCsv2018Async(importRows);
             if (messages.Any())
             {
                 foreach (var message in messages)
@@ -188,20 +224,20 @@ namespace Kasboek.WebApp.Controllers
             uploadViewModel.NewRekeningenLinkParameters = new Dictionary<string, string> { { "afterId", lastRekeningId.ToString() } };
         }
 
-        private async Task<List<List<string>>> TryGetImportRowsAsync(UploadViewModel uploadViewModel, char separator, char? quote, int amountOfValues)
+        private async Task<List<List<string>>> TryGetImportRowsAsync(UploadViewModel uploadViewModel, char separator, char? quote, int amountOfValues, bool containsHeader, bool useUTF8Encoding)
         {
             if (!ModelState.IsValid)
             {
                 return null;
             }
-            var fileContent = await FileHelpers.ProcessFormFile(uploadViewModel.Bestand, ModelState);
+            var fileContent = await FileHelpers.ProcessFormFile(uploadViewModel.Bestand, ModelState, useUTF8Encoding);
 
             if (!ModelState.IsValid)
             {
                 return null;
             }
 
-            var csvReader = new CsvReader(fileContent, separator, quote, amountOfValues);
+            var csvReader = new CsvReader(fileContent, separator, quote, amountOfValues, containsHeader);
             var errors = csvReader.Validate();
             if (errors.Any())
             {
@@ -552,7 +588,6 @@ namespace Kasboek.WebApp.Controllers
             return messages;
         }
 
-
         private async Task<List<string>> ImportTransactiesOudeExcelAsync(List<List<string>> importRows)
         {
             var messages = new List<string>();
@@ -643,6 +678,152 @@ namespace Kasboek.WebApp.Controllers
                     _transactiesService.Add(transactie);
                 }
             }
+            await _transactiesService.SaveChangesAsync();
+
+            return messages;
+        }
+
+        private async Task<List<string>> ImportTransactiesRabobankCsv2018Async(List<List<string>> importRows)
+        {
+            var messages = new List<string>();
+
+            //Massa import, laad alle rekeningen en instellingen van te voren in.
+            var rekeningenTask = _rekeningenService.GetListAsync();
+            var instellingenTask = _instellingenService.GetSingleAsync();
+            await Task.WhenAll(rekeningenTask, instellingenTask);
+            var rekeningen = rekeningenTask.Result;
+            var instellingen = instellingenTask.Result;
+
+            var importedTransacties = new List<Transactie>();
+
+            for (var rowIndex = 0; rowIndex < importRows.Count; rowIndex++)
+            {
+                var importRow = importRows[rowIndex];
+
+                var errorMessages = new List<string>();
+                var infoMessages = new List<string>();
+
+                var eigenRekeningnummer = importRow[0].Trim();
+
+                var datumImportValue = importRow[4].Trim();
+                if (!DateTime.TryParseExact(datumImportValue, "yyyy-MM-dd", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime datum))
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{datumImportValue}' is geen geldige datum.");
+                }
+
+                var isBijschrijving = false;
+                var isBijschrijvingImportValue = importRow[6].Trim();
+                if (isBijschrijvingImportValue.Length >= 1)
+                {
+                    isBijschrijvingImportValue = isBijschrijvingImportValue.Substring(0, 1);
+                }
+                if (isBijschrijvingImportValue.Equals("+", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    isBijschrijving = true;
+                }
+                else if (!isBijschrijvingImportValue.Equals("-", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{isBijschrijvingImportValue}' is geen geldige waarde voor is bijschrijving.");
+                }
+
+                var bedragImportValue = importRow[6].Trim();
+                if (bedragImportValue.Length >= 1)
+                {
+                    bedragImportValue = bedragImportValue.Substring(1);
+                }
+                if (!decimal.TryParse(bedragImportValue, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal bedrag))
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, '{bedragImportValue}' is geen geldig bedrag.");
+                }
+
+                var tegenRekeningnummer = importRow[8].Trim();
+                var tegenRekeningNaam = importRow[9].Trim();
+                var transactieCode = importRow[13].Trim();
+
+                var omschrijvingSb = new StringBuilder();
+                omschrijvingSb.AppendLine(importRow[19].Trim());
+                omschrijvingSb.AppendLine(importRow[20].Trim());
+                omschrijvingSb.AppendLine(importRow[21].Trim());
+                var omschrijving = omschrijvingSb.ToString().Trim();
+
+                var eigenRekening = FindRekeningByRekeningnummer(rekeningen, eigenRekeningnummer);
+                if (eigenRekening == null)
+                {
+                    errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, eigen rekening '{eigenRekeningnummer}' is niet gevonden.");
+                }
+
+                Rekening tegenRekening = null;
+                if (transactieCode == "kh" || transactieCode == "ga" || transactieCode == "gb")
+                {
+                    //Kasafhandeling, Geldautomaat Euro, Geldautomaat VV
+                    tegenRekening = instellingen.PortemonneeRekening;
+                    if (tegenRekening == null)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, er is geen portemonnee ingesteld.");
+                    }
+                }
+                else
+                {
+                    (var rekening, var rekeningErrorMessages) = FindOrImportRekening(rekeningen, tegenRekeningnummer, tegenRekeningNaam);
+                    tegenRekening = rekening;
+                    foreach (var rekeningErrorMessage in rekeningErrorMessages)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {rekeningErrorMessage}");
+                    }
+                }
+
+                Transactie transactie = null;
+                if (!errorMessages.Any())
+                {
+                    //De waarden zijn succesvol geparsed. Maak de transactie
+                    transactie = new Transactie
+                    {
+                        Datum = datum,
+                        Bedrag = bedrag,
+                        VanRekening = isBijschrijving ? tegenRekening : eigenRekening,
+                        NaarRekening = isBijschrijving ? eigenRekening : tegenRekening,
+                        Omschrijving = string.IsNullOrWhiteSpace(omschrijving) ? null : omschrijving
+                    };
+
+                    //Validatie werkt op Id, zet voor nu expliciet (voor o.a. de Unlike validator)
+                    transactie.VanRekeningId = transactie.VanRekening.RekeningId;
+                    transactie.NaarRekeningId = transactie.NaarRekening.RekeningId;
+
+                    await _transactiesService.DetermineCategorieAsync(transactie);
+
+                    var validationResults = new List<ValidationResult>();
+                    Validator.TryValidateObject(transactie, new ValidationContext(transactie, null, null), validationResults, true);
+                    foreach (var validationResult in validationResults)
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, {validationResult.ErrorMessage}");
+                    }
+
+                    if (importedTransacties.Any(t =>
+                        t.Datum == transactie.Datum &&
+                        t.Bedrag == transactie.Bedrag &&
+                        t.VanRekening == transactie.VanRekening &&
+                        t.NaarRekening == transactie.NaarRekening &&
+                        (
+                            (transactie.VanRekening.IsEigenRekening && transactie.NaarRekening.IsEigenRekening) || //Interne boeking. Deze komen dubbel voor in een bestand
+                            (t.Omschrijving == transactie.Omschrijving) //Externe boeking. Controleer ook de omschrijving (Betaalverzoeken verschillen vaak alleen op omschrijving)
+                        )))
+                    {
+                        errorMessages.Add($"Transactie op regel {rowIndex + 1} is overgeslagen, er is in dit bestand al een andere transactie op {transactie.Datum:ddd d/M/yyyy} met {transactie.Bedrag:C} van '{transactie.VanRekening.Naam}' naar '{transactie.NaarRekening.Naam}'.");
+                    }
+                }
+
+                if (errorMessages.Any())
+                {
+                    messages.AddRange(errorMessages);
+                }
+                else
+                {
+                    messages.AddRange(infoMessages);
+                    _transactiesService.Add(transactie);
+                    importedTransacties.Add(transactie);
+                }
+            }
+
             await _transactiesService.SaveChangesAsync();
 
             return messages;

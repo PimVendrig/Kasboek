@@ -28,7 +28,8 @@
 }
 
 .multiline {
-    white-space: pre;
+    white-space: pre-line;
+    max-width: 400px;
 }
 
 textarea.form-control.omschrijving {

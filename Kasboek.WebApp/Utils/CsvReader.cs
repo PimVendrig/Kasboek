@@ -8,7 +8,7 @@ namespace Kasboek.WebApp.Utils
     /// Simpele CSV reader:
     /// Alleen ondersteuning voor alles quotes of niets quotes.
     /// Geen ondersteuning voor newlines of separator als content.
-    /// Geen ondersteuning voor minder waarden dan de eerste regel.
+    /// Geen ondersteuning voor meer of minder waarden dan aangegeven.
     /// Lege regels worden overgeslagen.
     /// </summary>
     public class CsvReader
@@ -18,16 +18,18 @@ namespace Kasboek.WebApp.Utils
         protected char Separator { get; }
         protected char? Quote { get; }
         protected int AmountOfValues { get; }
+        protected bool ContainsHeader { get; }
         protected bool Parsed { get; set; }
         protected List<List<string>> Result { get; set; }
         protected List<string> ValidationErrors { get; set; }
 
-        public CsvReader(string content, char separator, char? quote, int amountOfValues)
+        public CsvReader(string content, char separator, char? quote, int amountOfValues, bool containsHeader)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Separator = separator;
             Quote = quote;
             AmountOfValues = amountOfValues;
+            ContainsHeader = containsHeader;
         }
 
         public List<string> Validate()
@@ -54,7 +56,7 @@ namespace Kasboek.WebApp.Utils
             var rows = Content.Split(Environment.NewLine);
             var combinedSeparator = Quote.HasValue ? $"{Quote.Value}{Separator}{Quote.Value}" : $"{Separator}";
 
-            for (var i = 0; i < rows.Length; i++)
+            for (var i = ContainsHeader ? 1 : 0; i < rows.Length; i++)
             {
                 var row = rows[i];
                 if (row.Length == 0)
